@@ -1,0 +1,82 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
+package org.dspace.ipfiltering;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.dspace.services.factory.DSpaceServicesFactory;
+
+public abstract class Regla{
+	
+	protected Float weight = 0f;
+	//index used to identify rules in case of repeated rules
+	protected String index = "";
+	
+	//Informacion adicional provista por la regla
+	protected String report = "";
+	
+	protected Map<String, String> settings = new HashMap<String, String>();
+	
+	//no se si esto va bien aca
+	HttpSolrServer server = null;
+	
+	SolrQuery solrQuery = new SolrQuery();
+	
+	public Regla()
+	{
+		String[] whiteList = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty("ipFilter.whitelist");
+		String filterQuery = Arrays.toString(whiteList)
+				.replaceAll(", ", " -")
+				.replace("[", "-")
+				.replace("]", "");
+    	server = new HttpSolrServer(DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("solr-statistics.server"));
+    	solrQuery.addFilterQuery("ip:("+filterQuery+")");
+	}
+	
+	public void setIndex(Integer index)
+	{
+		this.index = "."+String.valueOf(index);
+	}
+	
+	public void validateSettings(){
+		for(Entry<String, String> setting: settings.entrySet())
+		{
+			if ((setting.getValue() == null) || ("".equals(setting.getValue())))
+	        {
+	            System.err.println(" - Missing setting from ipfilter-rules.cfg: "+setting.getKey()+index);
+	            System.exit(0);
+	        }
+		}
+	} 
+	
+	public abstract void run(HashMap<String, CandidateIP> ipList) throws SolrServerException;
+	
+	public void addCandidate(HashMap<String, CandidateIP> ipList, String ip)
+	{
+		CandidateIP actualIP;
+		if(ipList.containsKey(ip))
+		{
+			actualIP = ipList.get(ip);
+			actualIP.addOccurrence(weight);
+			actualIP.addToReport(report);
+		}
+		else
+		{
+			actualIP = new CandidateIP(ip, weight, report);
+			ipList.put(ip, actualIP);
+		}
+	}
+	
+}
