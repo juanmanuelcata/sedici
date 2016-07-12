@@ -15,6 +15,8 @@ import org.dspace.statistics.service.SolrLoggerService;
 
 import java.io.*;
 import java.net.URL;
+
+import org.dspace.ipfiltering.IPFilterManager;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
@@ -65,6 +67,9 @@ public class StatisticsClient
         options.addOption("r", "remove-deleted-bitstreams", false, "While indexing the bundle names remove the statistics about deleted bitstreams");
         options.addOption("s", "shard-solr-index", false, "Split the data from the main Solr core into separate Solr cores per year");
         options.addOption("h", "help", false, "help");
+        
+        // TODO elegir nombres apropiados
+        options.addOption("c", "candidates", false, "bot candidate ip's");
 
 		CommandLine line = parser.parse(options, args);
 
@@ -106,6 +111,11 @@ public class StatisticsClient
         else if(line.hasOption('s'))
         {
             solrLoggerService.shardSolrIndex();
+        }
+        else if(line.hasOption('c'))
+        {
+           IPFilterManager ipFilter = new IPFilterManager();
+           ipFilter.filter();
         }
         else
         {
