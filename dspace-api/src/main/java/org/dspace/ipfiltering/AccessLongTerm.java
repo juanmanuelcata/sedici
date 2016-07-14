@@ -29,11 +29,6 @@ import org.elasticsearch.common.joda.time.LocalDate;
  */
 public class AccessLongTerm extends Regla {
 	
-	public AccessLongTerm()
-	{
-		this.weight = .6f;
-	}
-	
 	public void run(HashMap<String, CandidateIP> ipList) throws SolrServerException
 	{
 		this.settings.put("startDateStr", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(this.getClass().getSimpleName()+".startDate"+index));
@@ -53,16 +48,17 @@ public class AccessLongTerm extends Regla {
     	
     	QueryResponse response = server.query(solrQuery);
     	List<Count> list = response.getFacetFields().get(0).getValues();
-    	
-    	System.out.println(list);
-    	
-//    	for(Count c: list)
-//    	{
-//    		String[] str = c.toString().split(" ");
-//    		String ip = str[0];
-//    		report = "ip: "+ip+" between: "+startDate+" and "+endDate+" got "+str[1]+" access - type: "+Constants.typeText[Integer.valueOf(settings.get("type"))];
-//    		addCandidate(ipList, ip);
-//    	}
+
+    	for(Count c: list)
+    	{
+    		String[] str = c.toString().split(" ");
+    		String ip = str[0];
+    		String access = str[1]
+					.replace("(", "")
+					.replace(")", "");
+    		report = "ip: "+ip+" between: "+startDate+" and "+endDate+" got "+str[1]+" access - type: "+Constants.typeText[Integer.valueOf(settings.get("type"))];
+    		addCandidate(ipList, ip, Integer.parseInt(access));
+    	}
     	
 	}
 	

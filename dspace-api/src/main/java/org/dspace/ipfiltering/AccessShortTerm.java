@@ -15,11 +15,6 @@ import org.joda.time.DateTime;
 
 public class AccessShortTerm extends Regla {
 	
-	public AccessShortTerm()
-	{
-		this.weight = .8f;
-	}
-	
 	@Override
 	public void run(HashMap<String, CandidateIP> ipList) throws SolrServerException 
 	{
@@ -30,9 +25,8 @@ public class AccessShortTerm extends Regla {
 	
     	validateSettings();
 	
-    	DateTime startTime = new DateTime(settings.get("startDateStr"));
+    	DateTime timeIterator = new DateTime(settings.get("startDateStr"));
     	DateTime endTime = new DateTime(settings.get("endDateStr"));
-    	DateTime timeIterator = startTime;
     	
     	while (!timeIterator.equals(endTime))
     	{
@@ -45,25 +39,21 @@ public class AccessShortTerm extends Regla {
         	List<Count> list = response.getFacetFields().get(0).getValues();
         	if(response.getFacetFields().get(0).getValues().size() > 0)
         	{
-        		System.out.println(list);        		
+        		for(Count c: list)
+        		{
+        			String[] str = c.toString()
+        					.replace("[", "")
+        					.replace("]", "")
+        					.split(" ");
+        			String ip = str[0];
+        			String access = str[1]
+        					.replace("(", "")
+        					.replace(")", "");
+        			report = "ip: "+ip+" date: "+timeIterator.getYear()+"-"+timeIterator.getMonthOfYear()+"-"+timeIterator.getDayOfMonth()+" between "+timeIterator.getHourOfDay()+" and "+timeIterator.plusHours(1).getHourOfDay()+" got "+access+" access - type: "+Constants.typeText[Integer.valueOf(settings.get("type"))];
+        			addCandidate(ipList, ip, Integer.parseInt(access));
+        		}		
         	}
         	timeIterator = timeIterator.plusHours(1);
     	}    	
 	}
 }
-
-
-//if(response.getFacetFields().get(0).getValues().size() > 0)
-//{
-//	for(Count c: list)
-//	{
-//		String[] str = c.toString()
-//				.replace("[", "")
-//				.replace("]", "")
-//				.split(" ");
-//		String ip = str[0];
-//		String access = str[1];
-//		report = "ip: "+ip+" date: "+timeIterator.getYear()+"-"+timeIterator.getMonthOfYear()+"-"+timeIterator.getDayOfMonth()+" between "+timeIterator.getHourOfDay()+" and "+timeIterator.plusHours(1).getHourOfDay()+" got "+access+" access - type: "+Constants.typeText[Integer.valueOf(settings.get("type"))];
-//		addCandidate(ipList, ip);
-//	}
-//}

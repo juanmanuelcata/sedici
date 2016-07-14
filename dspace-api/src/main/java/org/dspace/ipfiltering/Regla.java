@@ -20,9 +20,12 @@ import org.dspace.services.factory.DSpaceServicesFactory;
 
 public abstract class Regla{
 	
-	protected Float weight = 0f;
 	//index used to identify rules in case of repeated rules
 	protected String index = "";
+	
+	protected float weight = 1f;
+	
+	protected String[] weights = {};
 	
 	//Informacion adicional provista por la regla
 	protected String report = "";
@@ -41,6 +44,7 @@ public abstract class Regla{
 				.replaceAll(", ", " -")
 				.replace("[", "-")
 				.replace("]", "");
+		weights = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty(this.getClass().getSimpleName()+".weigths"+index);
     	server = new HttpSolrServer(DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("solr-statistics.server"));
     	solrQuery.addFilterQuery("ip:("+filterQuery+")");
 	}
@@ -63,8 +67,17 @@ public abstract class Regla{
 	
 	public abstract void run(HashMap<String, CandidateIP> ipList) throws SolrServerException;
 	
-	public void addCandidate(HashMap<String, CandidateIP> ipList, String ip)
-	{
+	public void addCandidate(HashMap<String, CandidateIP> ipList, String ip, Integer occurrences)
+	{	
+		for(String w: weights){
+			if(occurrences > Integer.parseInt(w.split("=")[0]))
+			{
+				continue;
+			}
+			weight = Float.parseFloat(w.split("=")[1]);
+			break;
+		}
+		
 		CandidateIP actualIP;
 		if(ipList.containsKey(ip))
 		{

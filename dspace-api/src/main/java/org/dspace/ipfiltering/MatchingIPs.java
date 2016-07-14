@@ -15,11 +15,6 @@ public class MatchingIPs extends Regla{
 
 	private Map<String, Integer> occurrences = new HashMap<String, Integer>();
 	
-	public MatchingIPs()
-	{
-		this.weight = .2f;
-	}
-	
 	@Override
 	public void run(HashMap<String, CandidateIP> ipList) throws SolrServerException {
 		
@@ -54,7 +49,7 @@ public class MatchingIPs extends Regla{
     		if((Integer) ent.getValue() >= Integer.valueOf(settings.get("cant")))
     		{
     			report = ent.getKey()+"* cantidad de ocurrencias: "+ent.getValue();
-        		addCandidate(ipList, ent.getKey().toString());
+//        		addCandidate(ipList, ent.getKey().toString());
     		}
     	}
 	}

@@ -45,7 +45,7 @@ public class CandidateIP implements Comparable{
 		if(occurrences==1){
 			return probabilities;
 		}
-		return (probabilities+(occurrences))/(occurrences*2);
+		return (probabilities+occurrences)/(occurrences*2);
 	}
 
 	public void setProbabilities(Float probabilities) 
@@ -91,9 +91,9 @@ public class CandidateIP implements Comparable{
 	/*
 	 * eehhh masomeno
 	 */
-	public void addOccurrence(Float weigth) 
+	public void addOccurrence(Float weight)
 	{
 		this.occurrences++;
-		this.probabilities+=weigth;
+		this.probabilities+=weight;
 	}
 }
