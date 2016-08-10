@@ -11,13 +11,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
-
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.services.factory.DSpaceServicesFactory;
-import org.dspace.statistics.factory.StatisticsServiceFactory;
-import org.dspace.statistics.service.SolrLoggerService;
 
 public class IPFilterManager
 {
@@ -52,10 +48,9 @@ public class IPFilterManager
 		//Se puebla el array de whitelists
 		whitelist = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty("ipFilter.whitelist");
 		
-		
 		//Se puebla el array de reglas
 		rules = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty("ipFilter.rules");
-
+		
 		if ((rules == null) || ("".equals(rules)))
         {
             System.err.println(" - no rules defined");

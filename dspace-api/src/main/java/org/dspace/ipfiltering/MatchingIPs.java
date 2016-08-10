@@ -21,6 +21,7 @@ public class MatchingIPs extends Regla{
 		this.settings.put("cant", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(this.getClass().getSimpleName()+".cant"+index));
 				
 		solrQuery.setQuery("isBot:false");
+		solrQuery.setRows(0);
     	solrQuery.setFacet(true);
     	solrQuery.setParam("facet.field", "ip");
     	
@@ -31,6 +32,8 @@ public class MatchingIPs extends Regla{
     	{
     		String[] str = c.toString().split(" ");
     		String ip = str[0];
+    		
+    		//Elimino uno a uno los numeros del ultimo grupo
     		while(ip.charAt(ip.length()-1) != '.')
     		{
     			ip = ip.substring(0, ip.length()-1);
@@ -46,10 +49,11 @@ public class MatchingIPs extends Regla{
     	}
     	for(Entry ent: occurrences.entrySet())
     	{
-    		if((Integer) ent.getValue() >= Integer.valueOf(settings.get("cant")))
+    		Integer ocurs = (Integer) ent.getValue();
+    		if(ocurs >= Integer.valueOf(settings.get("cant")))
     		{
     			report = ent.getKey()+"* cantidad de ocurrencias: "+ent.getValue();
-//        		addCandidate(ipList, ent.getKey().toString());
+        		addCandidate(ipList, ent.getKey().toString(), ocurs);
     		}
     	}
 	}

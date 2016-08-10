@@ -35,6 +35,7 @@ public abstract class Regla{
 	//no se si esto va bien aca
 	HttpSolrServer server = null;
 	
+	//getsolrquery
 	SolrQuery solrQuery = new SolrQuery();
 	
 	public Regla()
@@ -67,9 +68,10 @@ public abstract class Regla{
 	
 	public abstract void run(HashMap<String, CandidateIP> ipList) throws SolrServerException;
 	
-	public void addCandidate(HashMap<String, CandidateIP> ipList, String ip, Integer occurrences)
+	public final void addCandidate(HashMap<String, CandidateIP> ipList, String ip, Integer occurrences)
 	{	
 		for(String w: weights){
+			System.out.println(w);
 			if(occurrences > Integer.parseInt(w.split("=")[0]))
 			{
 				continue;
