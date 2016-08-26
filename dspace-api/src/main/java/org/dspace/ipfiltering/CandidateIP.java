@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.ipfiltering;
 
 public class CandidateIP implements Comparable{
@@ -35,17 +42,14 @@ public class CandidateIP implements Comparable{
 		return ip;
 	}
 
-	public void setIp(String ip) 
+	public void setIp(String ip)
 	{
 		this.ip = ip;
 	}
 
-	public Float getProbabilities() 
+	public Float getProbabilities()
 	{
-		if(occurrences==1){
-			return probabilities;
-		}
-		return (probabilities+occurrences)/(occurrences*2);
+		return probabilities/occurrences;
 	}
 
 	public void setProbabilities(Float probabilities) 

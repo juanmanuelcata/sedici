@@ -1,31 +1,38 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.ipfiltering;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
-public class MatchingIPs extends Regla{
+public class MatchingIPs extends RuleType{
 
-	private Map<String, Integer> occurrences = new HashMap<String, Integer>();
+	private Map<String, List<String>> occurrences = new HashMap<String, List<String>>();
 	
 	@Override
-	public void run(HashMap<String, CandidateIP> ipList) throws SolrServerException {
-		
-		this.settings.put("cant", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(this.getClass().getSimpleName()+".cant"+index));
+	public void run(Rule ownerRule) throws SolrServerException {
 				
+		this.getSettings(ownerRule.getName());
+		
 		solrQuery.setQuery("isBot:false");
 		solrQuery.setRows(0);
     	solrQuery.setFacet(true);
     	solrQuery.setParam("facet.field", "ip");
     	
-    	QueryResponse response = server.query(solrQuery);
+    	QueryResponse response = RuleType.getSolrServerInstance().query(solrQuery);
     	
     	List<Count> list = response.getFacetFields().get(0).getValues();
     	for(Count c: list)
@@ -33,29 +40,43 @@ public class MatchingIPs extends Regla{
     		String[] str = c.toString().split(" ");
     		String ip = str[0];
     		
-    		//Elimino uno a uno los numeros del ultimo grupo
-    		while(ip.charAt(ip.length()-1) != '.')
+    		String[] auxIP = ip.split("\\.");
+    		String subIP = auxIP[0]+"."+auxIP[1]+"."+auxIP[2];
+
+    		List<String> subIPList = new ArrayList<String>();;
+    		if(occurrences.containsKey(subIP))
     		{
-    			ip = ip.substring(0, ip.length()-1);
-    		}
-    		if(occurrences.containsKey(ip))
-    		{
-    			occurrences.put(ip, occurrences.get(ip)+1);
+    			subIPList = occurrences.get(subIP);
+    			subIPList.add(ip);
+    			occurrences.put(subIP, subIPList);
     		}
     		else
     		{
-    			occurrences.put(ip, 1);
+    			subIPList.add(ip);
+    			occurrences.put(subIP, subIPList);
     		}	
     	}
-    	for(Entry ent: occurrences.entrySet())
+    	for(Entry<String, List<String>> ent: occurrences.entrySet())
     	{
-    		Integer ocurs = (Integer) ent.getValue();
+    		List<String> subIPList = ent.getValue();
+    		Integer ocurs = subIPList.size();
     		if(ocurs >= Integer.valueOf(settings.get("cant")))
     		{
-    			report = ent.getKey()+"* cantidad de ocurrencias: "+ent.getValue();
-        		addCandidate(ipList, ent.getKey().toString(), ocurs);
+    			//String report = ent.getKey()+"* cantidad de ocurrencias: "+ocur+"\n";
+    			for(String ip: subIPList)
+    			{
+    				//report += "---"+ip+"\n";
+    				String report = "presente en la subnet "+ent.getKey()+" junto con otra/s "+(ocurs-1)+" ips";
+    				ownerRule.addCandidate(ip, ocurs, report);
+    			}
+        		//ownerRule.addCandidate(ent.getKey().toString(), ocurs, report);
     		}
     	}
+	}
+
+	@Override
+	public void getSettings(String prefix) {
+		this.settings.put("cant", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".cant"));
 	}
 
 }

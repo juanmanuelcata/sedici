@@ -7,14 +7,8 @@
  */
 package org.dspace.ipfiltering;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.dspace.core.Constants;
@@ -22,22 +16,27 @@ import org.dspace.services.factory.DSpaceServicesFactory;
 import org.elasticsearch.common.joda.time.LocalDate;
 
 /**
- * Filtra ips que descargaron una determinada cantidad de bitstreams en un periodo de tiempo
+ * Filtra ip's que acceden a una determinada cantidad de elementos en un periodo largo de tiempo
  * 
  * @author gordo
  *
  */
-public class AccessLongTerm extends Regla {
+public class AccessLongTerm extends RuleType {
 	
-	public void run(HashMap<String, CandidateIP> ipList) throws SolrServerException
-	{
-		this.settings.put("startDateStr", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(this.getClass().getSimpleName()+".startDate"+index));
-    	this.settings.put("endDateStr", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(this.getClass().getSimpleName()+".endDate"+index));
-    	this.settings.put("type", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(this.getClass().getSimpleName()+".type"+index));
-    	this.settings.put("count", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(this.getClass().getSimpleName()+".count"+index));
-    	
+
+	@Override
+	public void getSettings(String prefix) {
+		this.settings.put("startDateStr", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".startDate"));
+    	this.settings.put("endDateStr", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".endDate"));
+    	this.settings.put("type", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".type"));
+    	this.settings.put("count", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".count"));
     	validateSettings();
-    	
+	}
+	
+	public void run(Rule ownerRule) throws SolrServerException
+	{    	
+		this.getSettings(ownerRule.getName());
+		
     	LocalDate startDate = new LocalDate(settings.get("startDateStr"));
     	LocalDate endDate = new LocalDate(settings.get("endDateStr"));
     	
@@ -46,9 +45,8 @@ public class AccessLongTerm extends Regla {
     	solrQuery.setParam("facet.field", "ip");
     	solrQuery.setParam("facet.mincount", settings.get("count"));
     	
-    	QueryResponse response = server.query(solrQuery);
+    	QueryResponse response = RuleType.getSolrServerInstance().query(solrQuery);
     	List<Count> list = response.getFacetFields().get(0).getValues();
-
     	for(Count c: list)
     	{
     		String[] str = c.toString().split(" ");
@@ -56,8 +54,8 @@ public class AccessLongTerm extends Regla {
     		String access = str[1]
 					.replace("(", "")
 					.replace(")", "");
-    		report = "ip: "+ip+" between: "+startDate+" and "+endDate+" got "+str[1]+" access - type: "+Constants.typeText[Integer.valueOf(settings.get("type"))];
-    		addCandidate(ipList, ip, Integer.parseInt(access));
+    		String report = "ip: "+ip+" between: "+startDate+" and "+endDate+" got "+access+" access - type: "+Constants.typeText[Integer.valueOf(settings.get("type"))];
+    		ownerRule.addCandidate(ip, Integer.parseInt(access), report);
     	}
     	
 	}

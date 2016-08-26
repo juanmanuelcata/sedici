@@ -47,52 +47,45 @@ public class IPFilterManager
 		
 		//Se puebla el array de whitelists
 		whitelist = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty("ipFilter.whitelist");
-		
+
 		//Se puebla el array de reglas
 		rules = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty("ipFilter.rules");
 		
 		if ((rules == null) || ("".equals(rules)))
         {
-            System.err.println(" - no rules defined");
+            System.err.println(" - no rules specified");
             System.exit(0);
         }
-		//Se construye el contexto para manejar reglas repetidas
-		for(String rule: rules)
-		{
-			if(rulesRepeated.contains(rule))
-			{
-				if(!actualRuleCount.containsKey(rule))
-				{
-					actualRuleCount.put(rule, 1);
-				}
-			}
-			else
-			{
-				rulesRepeated.add(rule);
-			}
-		}
+//		//Se construye el contexto para manejar reglas repetidas
+//		//por suerte es probable que vuele
+//		for(String rule: rules)
+//		{
+//			if(rulesRepeated.contains(rule))
+//			{
+//				if(!actualRuleCount.containsKey(rule))
+//				{
+//					actualRuleCount.put(rule, 1);
+//				}
+//			}
+//			else
+//			{
+//				rulesRepeated.add(rule);
+//			}
+//		}
 	}
 	
-	public void filter() throws SolrServerException, InstantiationException, IllegalAccessException
+	public void filter() throws SolrServerException, InstantiationException, IllegalAccessException, ClassNotFoundException
 	{			
-		for(String rule: rules)
+		for(String ruleName: rules)
 		{
-			try
+			String ruleType = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(ruleName+".ruleType");
+			Rule ruleInstance = new Rule(ruleName, ruleType, ipList);
+
+			if(actualRuleCount.containsKey(ruleName))
 			{
-				Regla ruleInstance = (Regla) Class.forName("org.dspace.ipfiltering."+rule).newInstance();
-			
-				if(actualRuleCount.containsKey(rule))
-				{
-					ruleInstance.setIndex(actualRuleCount.get(rule));
-					actualRuleCount.put(rule, actualRuleCount.get(rule) + 1);
-				}
-				ruleInstance.run(ipList);
+				actualRuleCount.put(ruleName, actualRuleCount.get(ruleName) + 1);
 			}
-			catch(ClassNotFoundException e)
-			{
-				System.err.println(" - no class for the rule: "+rule);
-				System.exit(0);
-			}
+			ruleInstance.run(ipList);
 		}
 		
 		//Se descartan las ip's incluidas en la whitelist
