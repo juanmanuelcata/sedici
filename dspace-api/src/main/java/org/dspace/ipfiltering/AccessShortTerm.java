@@ -7,12 +7,7 @@
  */
 package org.dspace.ipfiltering;
 
-import java.util.List;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.client.solrj.response.FacetField.Count;
-import org.dspace.core.Constants;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
