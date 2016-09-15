@@ -34,6 +34,8 @@ public class AccessShortTerm extends RuleType {
 	{
 		this.getSettings(ownerRule.getName());
 		
+		solrQuery = ownerRule.getSolrQuery();
+		
     	DateTime startDate = new DateTime(settings.get("startDateStr"));
     	DateTime endDate = new DateTime(settings.get("endDateStr"));
     	
@@ -42,8 +44,8 @@ public class AccessShortTerm extends RuleType {
     	DateTime endDate1 = startDate.plusDays(days.getDays()/2);
     	DateTime startDate2 = endDate1.plusDays(1);
     	
-    	QueryThread t1 = new QueryThread(startDate, endDate1, settings.get("type"), settings.get("count"), ownerRule, solrQuery);
-    	QueryThread t2 = new QueryThread(startDate2, endDate, settings.get("type"), settings.get("count"), ownerRule, solrQuery);
+    	ASTQueryThread t1 = new ASTQueryThread(startDate, endDate1, settings.get("type"), settings.get("count"), ownerRule, solrQuery);
+    	ASTQueryThread t2 = new ASTQueryThread(startDate2, endDate, settings.get("type"), settings.get("count"), ownerRule, solrQuery);
     	
     	t1.setName("Carlos");
     	t1.start();

@@ -7,7 +7,6 @@
  */
 package org.dspace.ipfiltering;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -24,23 +23,6 @@ public abstract class RuleType {
 	protected Map<String, String> settings = new HashMap<String, String>();
 	
 	SolrQuery solrQuery = new SolrQuery();
-	
-	public RuleType()
-	{
-		this.initialize();
-	}
-	
-	private void initialize()
-	{
-		String[] whiteList = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty("ipFilter.whitelist");
-		if(!whiteList[0].isEmpty()){
-			String filterQuery = Arrays.toString(whiteList)
-					.replaceAll(", ", " -")
-					.replace("[", "-")
-					.replace("]", "");
-	    	solrQuery.addFilterQuery("ip:("+filterQuery+")");
-		}
-	}
 	
 	public void getSettings(String prefix){};
 	

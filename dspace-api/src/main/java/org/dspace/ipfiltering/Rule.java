@@ -8,6 +8,8 @@
 package org.dspace.ipfiltering;
 
 import java.util.HashMap;
+
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
@@ -21,14 +23,17 @@ public class Rule{
 	
 	protected String[] weights = {};
 	
+	protected SolrQuery premadeSolrQuery = new SolrQuery();
+	
 	private HashMap<String, CandidateIP> ipList = new HashMap<String, CandidateIP>();
 
-	public Rule(String name, String ruleType, HashMap<String, CandidateIP> ipList) throws InstantiationException, IllegalAccessException, ClassNotFoundException
+	public Rule(String name, String ruleType, HashMap<String, CandidateIP> ipList, SolrQuery premadeSolrQuery) throws InstantiationException, IllegalAccessException, ClassNotFoundException
 	{
 		this.name = name;
 		this.strategy = (RuleType) Class.forName("org.dspace.ipfiltering."+ruleType).newInstance();
 		this.ipList = ipList;
-		this.weights = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty(name+".weights");
+		this.premadeSolrQuery = premadeSolrQuery;
+		weights = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty(name+".weights");
 	}
 	
 	public String getName() {
@@ -37,6 +42,12 @@ public class Rule{
 
 	public void setName(String name) {
 		this.name = name;
+	}
+	
+	//returns the premade solr query with the whitelist added to the filter query
+	public SolrQuery getSolrQuery()
+	{
+		return premadeSolrQuery;
 	}
 	
 	public void run(HashMap<String, CandidateIP> ipList) throws SolrServerException {

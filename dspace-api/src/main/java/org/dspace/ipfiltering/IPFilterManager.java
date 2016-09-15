@@ -7,16 +7,19 @@
  */
 package org.dspace.ipfiltering;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
 public class IPFilterManager
 {
+	private SolrQuery premadeSolrQuery = new SolrQuery();
 	
 	private static final Logger log = Logger.getLogger(IPFilterManager.class);
 	
@@ -34,19 +37,20 @@ public class IPFilterManager
 	 * Lista de ips candidatas con su valor correspondiente a la probabilidad de que sea un bot
 	 */
 	private HashMap<String, CandidateIP> ipList = new HashMap<String, CandidateIP>();
-	
-	/**
-	 * Si la regla se repite, mantiene un registro de la regla repetida actual que se esta ejecutando
-	 */
-	private Set<String> rulesRepeated = new HashSet<String>();
-	
-	private Map<String, Integer> actualRuleCount = new HashMap<String, Integer>();
-	
+
 	public IPFilterManager()
 	{
 		
 		//Se puebla el array de whitelists
 		whitelist = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty("ipFilter.whitelist");
+		if(whitelist.length > 0){
+			String filterQuery = Arrays.toString(whitelist)
+					.replaceAll(", ", " -")
+					.replace("[", "-")
+					.replace("]", "");
+	    	premadeSolrQuery.addFilterQuery("ip:("+filterQuery+")");
+	    	premadeSolrQuery.addFilterQuery("isBot: false");
+		}
 
 		//Se puebla el array de reglas
 		rules = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty("ipFilter.rules");
@@ -56,22 +60,6 @@ public class IPFilterManager
             System.err.println(" - no rules specified");
             System.exit(0);
         }
-//		//Se construye el contexto para manejar reglas repetidas
-//		//por suerte es probable que vuele
-//		for(String rule: rules)
-//		{
-//			if(rulesRepeated.contains(rule))
-//			{
-//				if(!actualRuleCount.containsKey(rule))
-//				{
-//					actualRuleCount.put(rule, 1);
-//				}
-//			}
-//			else
-//			{
-//				rulesRepeated.add(rule);
-//			}
-//		}
 	}
 	
 	public void filter() throws SolrServerException, InstantiationException, IllegalAccessException, ClassNotFoundException
@@ -79,32 +67,10 @@ public class IPFilterManager
 		for(String ruleName: rules)
 		{
 			String ruleType = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(ruleName+".ruleType");
-			Rule ruleInstance = new Rule(ruleName, ruleType, ipList);
+			Rule ruleInstance = new Rule(ruleName, ruleType, ipList, premadeSolrQuery);
 
-			if(actualRuleCount.containsKey(ruleName))
-			{
-				actualRuleCount.put(ruleName, actualRuleCount.get(ruleName) + 1);
-			}
 			ruleInstance.run(ipList);
 		}
-		
-		//Se descartan las ip's incluidas en la whitelist
-//		if((ipList.size() > 0) && (whitelist.length > 0))
-//		{
-//			for (String whiteIp: whitelist)
-//			{
-//				//String whiteIpRegex = whiteIp.replace(".", "\\.");
-//				String[] auxIpList = ipList.keySet().toArray(new String[ipList.keySet().size()]);
-//				//uso un arreglo auxiliar para remover elementos de la lista sobre la que estoy iterando
-//				for(String ip: auxIpList)
-//				{
-//					if(Pattern.matches(whiteIp, ip))
-//					{
-//						ipList.remove(ip);
-//					}
-//				}
-//			}
-//		}
 	
 		//Informe de resultados
 		if(ipList.size() > 0){
