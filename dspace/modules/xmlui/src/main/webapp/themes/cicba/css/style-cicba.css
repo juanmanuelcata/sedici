@@ -33,6 +33,10 @@ ol {
 	color: #4365a2;
 }
 
+#logo-cic-digital > a:hover{
+	text-decoration: none;
+}
+
 @media(max-width: 500px){
 /* 	#logo-cic-digital{ */
 /* 		background-image: url('../images/header_72.png'); */
