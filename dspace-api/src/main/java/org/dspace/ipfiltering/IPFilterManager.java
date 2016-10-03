@@ -24,6 +24,9 @@ import org.dspace.statistics.util.SpiderDetector;
 
 public class IPFilterManager
 {
+	
+	private static IPFilterManager instance;
+	
 	private SolrQuery premadeSolrQuery = new SolrQuery();
 	
 	private static final Logger log = Logger.getLogger(IPFilterManager.class);
@@ -47,9 +50,23 @@ public class IPFilterManager
 	 * 
 	 * @param cron
 	 */
-	private boolean cron;
+	public boolean cron = false;
 
-	public IPFilterManager(boolean cron)
+	/**
+	 * 
+	 * @param cronjob specifies if the task is called by a cron scheduled job or by a human user
+	 * @return
+	 */
+	public static IPFilterManager getInstance(boolean cronjob){
+		if(instance == null)
+		{
+			instance = new IPFilterManager();
+		}
+		instance.cron=cronjob;
+		return instance;
+	}
+	
+	public IPFilterManager()
 	{
 		//Se puebla el array de whitelists
 		whitelist = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty("ipFilter.whitelist");
@@ -59,14 +76,16 @@ public class IPFilterManager
 					.replace("[", "-")
 					.replace("]", "");
 	    	premadeSolrQuery.addFilterQuery("ip:("+filterQuery+")");
-	    	premadeSolrQuery.addFilterQuery("isBot: false");
 		}
-		this.cron = cron;
+		premadeSolrQuery.addFilterQuery("isBot: false");
+		System.out.println(cron);
 		String rulesSelector = (!cron) ? "ipFilter" : "cron.ipFilter";
+	
+		System.out.println(rulesSelector);
 		
 		//Se puebla el array de reglas
 		rules = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty(rulesSelector+".rules");
-		
+
 		if ((rules == null) || ("".equals(rules)))
         {
             System.err.println(" - no rules specified");
@@ -77,7 +96,7 @@ public class IPFilterManager
 	public void filter() throws SolrServerException, InstantiationException, IllegalAccessException, ClassNotFoundException
 	{			
 		for(String ruleName: rules)
-		{			
+		{
 			String ruleType = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(ruleName+".ruleType");
 			Rule ruleInstance = new Rule(ruleName, ruleType, ipList, premadeSolrQuery);
 
@@ -108,7 +127,7 @@ public class IPFilterManager
 			{
 				PrintWriter writer;
 				try {
-					writer = new PrintWriter("bot-detection-"+new Date()+".txt", "UTF-8");
+					writer = new PrintWriter("bot-detection-"+new Date().toString()+".txt", "UTF-8");
 					writer.println(text);
 					writer.close();
 				} catch (FileNotFoundException | UnsupportedEncodingException e) {

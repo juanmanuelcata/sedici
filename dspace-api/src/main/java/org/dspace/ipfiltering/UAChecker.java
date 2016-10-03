@@ -30,7 +30,7 @@ public class UAChecker extends RuleType{
 		
 		//Revisar porsible refactoring
 		solrQuery = ownerRule.getSolrQuery();
-		
+
 		String queryString = "";
 		if(substr.length > 0)
 		{
@@ -40,6 +40,7 @@ public class UAChecker extends RuleType{
 			}
 		}
 
+		
 		solrQuery.setQuery("userAgent:/("+queryString+".*bot.*|.*crawler.*|.*spider.*)/");
 		solrQuery.setFacet(true);
     	solrQuery.addFacetField("userAgent");

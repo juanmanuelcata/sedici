@@ -15,6 +15,8 @@ import org.dspace.statistics.service.SolrLoggerService;
 
 import java.io.*;
 import java.net.URL;
+
+import org.dspace.ipfiltering.IPFilterManager;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
@@ -66,6 +68,10 @@ public class StatisticsClient
         options.addOption("s", "shard-solr-index", false, "Split the data from the main Solr core into separate Solr cores per year");
         options.addOption("h", "help", false, "help");
 
+        // TODO elegir nombres apropiados
+        options.addOption("c", "bot candidates", false, "run bot candidate ip's detection");
+        options.addOption("C", "bot candidates (cron)", false, "same as 'c' for cron task");
+        
 		CommandLine line = parser.parse(options, args);
 
         // Did the user ask to see the help?
@@ -106,6 +112,16 @@ public class StatisticsClient
         else if(line.hasOption('s'))
         {
             solrLoggerService.shardSolrIndex();
+        }
+        else if(line.hasOption('c'))
+        {
+           IPFilterManager ipFilter = IPFilterManager.getInstance(false);
+           ipFilter.filter();
+        }
+        else if(line.hasOption('C'))
+        {
+        	IPFilterManager ipFilter = IPFilterManager.getInstance(true);
+        	ipFilter.filter();
         }
         else
         {
