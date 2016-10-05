@@ -50,7 +50,7 @@ public class IPFilterManager
 	 * 
 	 * @param cron
 	 */
-	public boolean cron = false;
+	public boolean cron;
 
 	/**
 	 * 
@@ -66,6 +66,7 @@ public class IPFilterManager
 		return instance;
 	}
 	
+	
 	public IPFilterManager()
 	{
 		//Se puebla el array de whitelists
@@ -78,10 +79,12 @@ public class IPFilterManager
 	    	premadeSolrQuery.addFilterQuery("ip:("+filterQuery+")");
 		}
 		premadeSolrQuery.addFilterQuery("isBot: false");
-		System.out.println(cron);
-		String rulesSelector = (!cron) ? "ipFilter" : "cron.ipFilter";
+	}
 	
-		System.out.println(rulesSelector);
+	
+	private void getRules()
+	{
+		String rulesSelector = (!cron) ? "ipFilter" : "cron.ipFilter";
 		
 		//Se puebla el array de reglas
 		rules = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty(rulesSelector+".rules");
@@ -95,6 +98,8 @@ public class IPFilterManager
 	
 	public void filter() throws SolrServerException, InstantiationException, IllegalAccessException, ClassNotFoundException
 	{			
+		this.getRules();
+		
 		for(String ruleName: rules)
 		{
 			String ruleType = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(ruleName+".ruleType");

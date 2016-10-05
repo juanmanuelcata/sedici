@@ -23,7 +23,6 @@ import org.elasticsearch.common.joda.time.LocalDate;
  */
 public class AccessLongTerm extends RuleType {
 	
-
 	@Override
 	public void getSettings(String prefix) {
 		this.settings.put("startDateStr", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".startDate"));
