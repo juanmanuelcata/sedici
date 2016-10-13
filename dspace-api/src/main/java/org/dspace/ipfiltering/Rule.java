@@ -31,6 +31,7 @@ public class Rule{
 	{
 		this.name = name;
 		this.strategy = (RuleType) Class.forName("org.dspace.ipfiltering."+ruleType).newInstance();
+		this.strategy.setOwnerRule(this);
 		this.ipList = ipList;
 		this.premadeSolrQuery = premadeSolrQuery;
 		weights = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty(name+".weights");
@@ -52,33 +53,33 @@ public class Rule{
 	
 	public void run(HashMap<String, CandidateIP> ipList) throws SolrServerException {
 		
-		strategy.run(this);
+		strategy.run();
 		
 	}
 	
-	public final synchronized void addCandidate(String ip, Integer occurrences, String report)
+	public final synchronized void addCandidate(PartialIP partialIP)
 	{			
 		CandidateIP actualIP;
-		if(ipList.containsKey(ip))
+		if(ipList.containsKey(partialIP.getIp()))
 		{
-			actualIP = ipList.get(ip);
+			actualIP = ipList.get(partialIP.getIp());
 			actualIP.addOccurrence(1f);
-			actualIP.addToReport(report);
+			actualIP.addToReport(partialIP.getReport());
 		}
 		else
 		{
 			//El valor tope que va a tomar si excede lo establecido en la configuracion		
 			weight = 1f;
 			for(String w: weights){
-				if(occurrences > Integer.parseInt(w.split("=")[0]))
+				if(partialIP.getAccess() > Integer.parseInt(w.split("=")[0]))
 				{
 					continue;
 				}
 				weight = Float.parseFloat(w.split("=")[1]);
 				break;
 			}
-			actualIP = new CandidateIP(ip, weight, report);
-			ipList.put(ip, actualIP);
+			actualIP = new CandidateIP(partialIP.getIp(), weight, partialIP.getReport());
+			ipList.put(partialIP.getIp(), actualIP);
 		}
 	}
 	

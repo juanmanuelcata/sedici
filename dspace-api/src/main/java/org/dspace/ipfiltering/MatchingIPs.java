@@ -23,15 +23,20 @@ public class MatchingIPs extends RuleType{
 	private Map<String, List<String>> occurrences = new HashMap<String, List<String>>();
 	
 	@Override
-	public void run(Rule ownerRule) throws SolrServerException {
-				
-		this.getSettings(ownerRule.getName());
-		
-		solrQuery.setQuery("isBot:false");
+	public void getSettings(String prefix) {
+		this.settings.put("cant", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".cant"));
+	}
+
+	@Override
+	protected void buildQuery() {
 		solrQuery.setRows(0);
     	solrQuery.setFacet(true);
     	solrQuery.setParam("facet.field", "ip");
-    	
+	}
+	
+	@Override
+	public void eval() throws SolrServerException {
+				
     	QueryResponse response = RuleType.getSolrServerInstance().query(solrQuery);
     	
     	List<Count> list = response.getFacetFields().get(0).getValues();
@@ -62,21 +67,12 @@ public class MatchingIPs extends RuleType{
     		Integer ocurs = subIPList.size();
     		if(ocurs >= Integer.valueOf(settings.get("cant")))
     		{
-    			//String report = ent.getKey()+"* cantidad de ocurrencias: "+ocur+"\n";
     			for(String ip: subIPList)
     			{
-    				//report += "---"+ip+"\n";
     				String report = "presente en la subnet "+ent.getKey()+" junto con otra/s "+(ocurs-1)+" ips";
-    				ownerRule.addCandidate(ip, ocurs, report);
+    				ipFoundList.add(new PartialIP(ip, ocurs, report));
     			}
-        		//ownerRule.addCandidate(ent.getKey().toString(), ocurs, report);
     		}
     	}
 	}
-
-	@Override
-	public void getSettings(String prefix) {
-		this.settings.put("cant", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".cant"));
-	}
-
 }

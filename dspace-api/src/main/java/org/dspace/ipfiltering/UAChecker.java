@@ -21,16 +21,10 @@ public class UAChecker extends RuleType{
 	public void getSettings(String prefix)
 	{
 		substr = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty(prefix+".substr");
-		//no verifico los parámetros porque podria no estar
 	}
 	
 	@Override
-	public void run(Rule ownerRule) throws SolrServerException {
-		this.getSettings(ownerRule.getName());
-		
-		//Revisar porsible refactoring
-		solrQuery = ownerRule.getSolrQuery();
-
+	protected void buildQuery() {
 		String queryString = "";
 		if(substr.length > 0)
 		{
@@ -39,13 +33,14 @@ public class UAChecker extends RuleType{
 				queryString += ".*"+str+".*|";
 			}
 		}
-
-		
 		solrQuery.setQuery("userAgent:/("+queryString+".*bot.*|.*crawler.*|.*spider.*)/");
 		solrQuery.setFacet(true);
     	solrQuery.addFacetField("userAgent");
     	solrQuery.setFacetMinCount(1);
-    	
+	}
+	
+	@Override
+	public void eval() throws SolrServerException {
     	QueryResponse response = RuleType.getSolrServerInstance().query(solrQuery);
     	
     	List<Count> list = response.getFacetFields().get(0).getValues();
@@ -59,5 +54,4 @@ public class UAChecker extends RuleType{
     		}		
     	}
 	}
-	
 }

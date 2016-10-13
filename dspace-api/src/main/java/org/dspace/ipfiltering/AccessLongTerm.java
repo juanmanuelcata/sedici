@@ -23,8 +23,14 @@ import org.elasticsearch.common.joda.time.LocalDate;
  */
 public class AccessLongTerm extends RuleType {
 	
+	private LocalDate startDate;
+	private LocalDate endDate;
+	
 	@Override
 	public void getSettings(String prefix) {
+		startDate = new LocalDate(settings.get("startDateStr"));
+		endDate = new LocalDate(settings.get("endDateStr"));
+		
 		this.settings.put("startDateStr", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".startDate"));
     	this.settings.put("endDateStr", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".endDate"));
     	this.settings.put("type", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".type"));
@@ -32,10 +38,8 @@ public class AccessLongTerm extends RuleType {
     	validateSettings();
 	}
 	
-	public void run(Rule ownerRule) throws SolrServerException
-	{    	
-		this.getSettings(ownerRule.getName());
-		
+	@Override
+	protected void buildQuery() {
     	LocalDate startDate = new LocalDate(settings.get("startDateStr"));
     	LocalDate endDate = new LocalDate(settings.get("endDateStr"));
     	
@@ -43,7 +47,10 @@ public class AccessLongTerm extends RuleType {
     	solrQuery.setFacet(true);
     	solrQuery.setParam("facet.field", "ip");
     	solrQuery.setParam("facet.mincount", settings.get("count"));
-    	
+    }
+
+	public void eval() throws SolrServerException
+	{
     	QueryResponse response = RuleType.getSolrServerInstance().query(solrQuery);
     	List<Count> list = response.getFacetFields().get(0).getValues();
     	for(Count c: list)
@@ -54,7 +61,7 @@ public class AccessLongTerm extends RuleType {
 					.replace("(", "")
 					.replace(")", "");
     		String report = "ip: "+ip+" between: "+startDate+" and "+endDate+" got "+access+" access - type: "+Constants.typeText[Integer.valueOf(settings.get("type"))];
-    		ownerRule.addCandidate(ip, Integer.parseInt(access), report);
+    		ipFoundList.add(new PartialIP(ip, Integer.parseInt(access), report));
     	}
     	
 	}

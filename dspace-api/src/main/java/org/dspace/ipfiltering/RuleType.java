@@ -7,7 +7,9 @@
  */
 package org.dspace.ipfiltering;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -22,12 +24,42 @@ public abstract class RuleType {
 
 	protected Map<String, String> settings = new HashMap<String, String>();
 	
-	SolrQuery solrQuery = new SolrQuery();
+	protected SolrQuery solrQuery;
 	
-	public void getSettings(String prefix){};
+	/**
+	 * Use ipFoud to save the ip's detected
+	 */
+	protected List<PartialIP> ipFoundList = new ArrayList<PartialIP>();
 	
-	public abstract void run(Rule ownerRule) throws SolrServerException;
+	private Rule ownerRule;
 	
+	//Hook methods
+	
+	protected abstract void getSettings(String prefix);
+	
+	protected abstract void buildQuery();
+	
+	protected abstract void eval() throws SolrServerException;
+	
+	//
+	
+	public void setOwnerRule(Rule rule)
+	{
+		this.ownerRule = rule;
+	}
+	
+	//Template method
+	public void run() throws SolrServerException
+	{
+		solrQuery = ownerRule.getSolrQuery();
+		this.getSettings(ownerRule.getName());
+		this.validateSettings();
+		this.buildQuery();
+		this.eval();
+		this.process();
+	};
+
+
 	public void validateSettings(){
 		for(Entry<String, String> setting: settings.entrySet())
 		{
@@ -36,6 +68,14 @@ public abstract class RuleType {
 	            System.err.println(" - Missing setting from ipfilter-rules.cfg: "+setting.getKey());
 	            System.exit(0);
 	        }
+		}
+	}
+	
+	public void process()
+	{
+		for(PartialIP ip : ipFoundList)
+		{
+			ownerRule.addCandidate(ip);
 		}
 	}
 	

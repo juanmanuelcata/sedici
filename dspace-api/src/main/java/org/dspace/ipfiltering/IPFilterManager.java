@@ -104,7 +104,6 @@ public class IPFilterManager
 		{
 			String ruleType = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(ruleName+".ruleType");
 			Rule ruleInstance = new Rule(ruleName, ruleType, ipList, premadeSolrQuery);
-
 			ruleInstance.run(ipList);
 		}
 	
