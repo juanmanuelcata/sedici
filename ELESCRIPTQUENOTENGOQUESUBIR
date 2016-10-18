@@ -1,0 +1,5 @@
+#!/bin/bash
+
+mvn package -P \!dspace-jspui,\!dspace-rdf,\!dspace-sword,\!dspace-swordv2,\!dspace-oai,\!dspace-rest,\!xmlui-mirage2
+cd ./dspace/target/dspace-installer
+ant update -Doverwrite=false
