@@ -73,7 +73,7 @@ public class StatisticsClient
         options.addOption("C", "bot candidates (cron)", false, "same as 'c' for cron task");
         
 		CommandLine line = parser.parse(options, args);
-
+		
         // Did the user ask to see the help?
         if (line.hasOption('h'))
         {

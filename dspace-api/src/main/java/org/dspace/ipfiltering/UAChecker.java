@@ -42,10 +42,10 @@ public class UAChecker extends RuleType{
 	@Override
 	public void eval() throws SolrServerException {
     	QueryResponse response = RuleType.getSolrServerInstance().query(solrQuery);
-    	
-    	List<Count> list = response.getFacetFields().get(0).getValues();
-    	if(response.getFacetFields().get(0).getValues().size() > 0)
+    	 	
+    	if(response.getFacetField("userAgent").getValues().size() > 0)
     	{
+    		List<Count> list = response.getFacetField("userAgent").getValues();
     		System.out.println("Los siguientes user agent no estan registrados como bot y podrian pertenecer a fuentes sospechosas. "
     				+ "Se recomienda agregarlos a los archivos de spiders en /config/spiders/agents");
     		for(Count c: list)

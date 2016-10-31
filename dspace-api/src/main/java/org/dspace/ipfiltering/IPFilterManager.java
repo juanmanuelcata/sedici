@@ -20,6 +20,8 @@ import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.statistics.factory.StatisticsServiceFactory;
+import org.dspace.statistics.service.SolrLoggerService;
 import org.dspace.statistics.util.SpiderDetector;
 
 public class IPFilterManager
@@ -32,12 +34,12 @@ public class IPFilterManager
 	private static final Logger log = Logger.getLogger(IPFilterManager.class);
 	
 	/**
-	 * IP's que no deben ser consideradas
+	 * whitelist
 	 */
 	private String[] whitelist = {};
 	
 	/**
-	 * Coleccion de reglas a llevar a cabo
+	 * Rules to be executed
 	 */
 	private String[] rules = {};
 	
@@ -47,6 +49,19 @@ public class IPFilterManager
 	private HashMap<String, CandidateIP> ipList = new HashMap<String, CandidateIP>();
 	
 	/**
+	 * How to show results
+	 * 
+	 */
+	private ResultViewer viewer;
+	
+	/**
+	 * Where to show results
+	 * 
+	 */
+	private ResultOutput output;
+	
+	/**
+	 * if its a crontask
 	 * 
 	 * @param cron
 	 */
@@ -56,8 +71,11 @@ public class IPFilterManager
 	 * 
 	 * @param cronjob specifies if the task is called by a cron scheduled job or by a human user
 	 * @return
+	 * @throws ClassNotFoundException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
 	 */
-	public static IPFilterManager getInstance(boolean cronjob){
+	public static IPFilterManager getInstance(boolean cronjob) throws InstantiationException, IllegalAccessException, ClassNotFoundException{
 		if(instance == null)
 		{
 			instance = new IPFilterManager();
@@ -67,7 +85,7 @@ public class IPFilterManager
 	}
 	
 	
-	public IPFilterManager()
+	public IPFilterManager() throws InstantiationException, IllegalAccessException, ClassNotFoundException
 	{
 		//Se puebla el array de whitelists
 		whitelist = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty("ipFilter.whitelist");
@@ -78,7 +96,23 @@ public class IPFilterManager
 					.replace("]", "");
 	    	premadeSolrQuery.addFilterQuery("ip:("+filterQuery+")");
 		}
-		premadeSolrQuery.addFilterQuery("isBot: false");
+		premadeSolrQuery.addFilterQuery("-isBot: true");
+		
+		//set the result viewer
+		String viewerStr = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("resultViewer");
+		if ((viewerStr == null) || ("".equals(viewerStr))){
+			viewer = new DetailedView();
+		}else{
+			viewer = (ResultViewer) Class.forName("org.dspace.ipfiltering."+viewerStr).newInstance();
+		};
+		
+		//set the output
+		String outputStr = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("output");
+		if ((outputStr == null) || ("".equals(outputStr))){
+			output = new ConsolePrint();
+		}else{
+			output = (ResultOutput) Class.forName("org.dspace.ipfiltering."+outputStr).newInstance();
+		};
 	}
 	
 	
@@ -106,40 +140,23 @@ public class IPFilterManager
 			Rule ruleInstance = new Rule(ruleName, ruleType, ipList, premadeSolrQuery);
 			ruleInstance.run(ipList);
 		}
+		
 	
 		//Informe de resultados
 		if(ipList.size() > 0){
 			//Set<String> ips = ipList.keySet();
 			
-			//Marca los ip como bot
-			//SolrLoggerService solrLoggerService = StatisticsServiceFactory.getInstance().getSolrLoggerService();
-			//solrLoggerService.markRobotsByIP(ips);
 			
-			String text = "";
-			
-			for (CandidateIP candidate : ipList.values())
-			{
-				text+=candidate.getIp()+"\n";
-				text+="---probabilidad:"+candidate.getProbabilities()+"\n";
-				text+="---reporte:"+"\n";
-				text+=candidate.getReport()+"\n";
-				text+="====================================== \n";
-				
-			}
-			
-			if(cron)
-			{
-				PrintWriter writer;
-				try {
-					writer = new PrintWriter("bot-detection-"+new Date().toString()+".txt", "UTF-8");
-					writer.println(text);
-					writer.close();
-				} catch (FileNotFoundException | UnsupportedEncodingException e) {
-					e.printStackTrace();
+			if(DSpaceServicesFactory.getInstance().getConfigurationService().getBooleanProperty("markBots", false)){
+				//Marca los ip como bot
+				SolrLoggerService solrLoggerService = StatisticsServiceFactory.getInstance().getSolrLoggerService();
+				for(CandidateIP candidate : ipList.values()){
+					System.out.println("marcando "+candidate.getIp());
+					solrLoggerService.markRobotsByIP(candidate.getIp());					
 				}
-			}else{
-				System.out.println(text);
 			}
+			
+			output.print(viewer.buildView(ipList));
 		}
 		else
 		{

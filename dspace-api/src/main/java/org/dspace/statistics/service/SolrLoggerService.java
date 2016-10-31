@@ -97,6 +97,8 @@ public interface SolrLoggerService {
             List oldFieldVals, String field);
 
     public void markRobotsByIP();
+    
+    public void markRobotsByIP(String ip);
 
     public void markRobotByUserAgent(String agent);
 

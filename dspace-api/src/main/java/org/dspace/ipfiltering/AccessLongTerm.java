@@ -28,20 +28,20 @@ public class AccessLongTerm extends RuleType {
 	
 	@Override
 	public void getSettings(String prefix) {
-		startDate = new LocalDate(settings.get("startDateStr"));
-		endDate = new LocalDate(settings.get("endDateStr"));
 		
 		this.settings.put("startDateStr", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".startDate"));
     	this.settings.put("endDateStr", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".endDate"));
     	this.settings.put("type", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".type"));
     	this.settings.put("count", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".count"));
+    	
+    	startDate = new LocalDate(settings.get("startDateStr"));
+    	endDate = new LocalDate(settings.get("endDateStr"));
+    	
     	validateSettings();
 	}
 	
 	@Override
 	protected void buildQuery() {
-    	LocalDate startDate = new LocalDate(settings.get("startDateStr"));
-    	LocalDate endDate = new LocalDate(settings.get("endDateStr"));
     	
     	solrQuery.setQuery("time:["+startDate.toString()+"T00:00:00.000Z TO "+endDate.toString()+"T00:00:00.000Z]-isBot:true AND type:"+settings.get("type"));
     	solrQuery.setFacet(true);

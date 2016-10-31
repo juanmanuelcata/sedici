@@ -29,20 +29,21 @@ public class AccessShortTerm extends RuleType {
 	private DateTime endDate;
 	
 	public void getSettings(String prefix)
-	{
-		timeIterator  = new DateTime(settings.get("startDateStr"));
-		endDate = new DateTime(settings.get("endDateStr"));
-		
+	{		
 		settings.put("startDateStr", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".startDate"));
     	settings.put("endDateStr", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".endDate"));
     	settings.put("type", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".type"));
     	settings.put("count", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".count"));
+    	
+    	timeIterator  = new DateTime(settings.get("startDateStr"));
+		endDate = new DateTime(settings.get("endDateStr"));
+    	
     	validateSettings();
 	}
 	
 	public void buildQuery()
 	{	
-		solrQuery.setQuery("time:["+timeIterator.toString()+"Z TO "+timeIterator.plusHours(1).toString()+"Z]-isBot:true AND type:"+settings.get("type"));
+		solrQuery.setQuery("time:["+timeIterator.toString()+"Z TO "+timeIterator.plusHours(1).toString()+"Z] AND type:"+settings.get("type"));
 		solrQuery.setFacet(true);
     	solrQuery.setParam("facet.field", "ip");
     	solrQuery.setParam("facet.mincount", settings.get("count"));
@@ -61,9 +62,9 @@ public class AccessShortTerm extends RuleType {
 //    	ASTQueryThread t1 = new ASTQueryThread(startDate, endDate1, settings.get("type"), settings.get("count"), ownerRule, solrQuery);
 //    	ASTQueryThread t2 = new ASTQueryThread(startDate2, endDate, settings.get("type"), settings.get("count"), ownerRule, solrQuery);
 //    	
-//    	t1.setName("Carlos");
+//    	t1.setName("t1");
 //    	t1.start();
-//    	t2.setName("Susana");
+//    	t2.setName("t2");
 //    	t2.start();
 //    	
 //    	try {
@@ -76,7 +77,6 @@ public class AccessShortTerm extends RuleType {
 //     	
     	while (!timeIterator.equals(endDate))
     	{
-    		System.out.println("entro");
     		QueryResponse response = RuleType.getSolrServerInstance().query(solrQuery);
         	List<Count> list = response.getFacetFields().get(0).getValues();
         	if(response.getFacetFields().get(0).getValues().size() > 0)
@@ -93,9 +93,10 @@ public class AccessShortTerm extends RuleType {
         					.replace(")", "");
         			String report = "ip: "+ip+" date: "+timeIterator.getYear()+"-"+timeIterator.getMonthOfYear()+"-"+timeIterator.getDayOfMonth()+" between "+timeIterator.getHourOfDay()+" and "+timeIterator.plusHours(1).getHourOfDay()+" got "+access+" access - type: "+Constants.typeText[Integer.valueOf(settings.get("type"))];
         			ipFoundList.add(new PartialIP(ip, Integer.parseInt(access), report));
-        		}		
+        		}
         	}
         	timeIterator = timeIterator.plusHours(1);
+        	solrQuery.setQuery("time:["+timeIterator.toString()+"Z TO "+timeIterator.plusHours(1).toString()+"Z] AND type:"+settings.get("type"));
     	}
 	}
 }
