@@ -7,22 +7,15 @@
  */
 package org.dspace.ipfiltering;
 
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.statistics.factory.StatisticsServiceFactory;
 import org.dspace.statistics.service.SolrLoggerService;
-import org.dspace.statistics.util.SpiderDetector;
 
 public class IPFilterManager
 {
@@ -61,13 +54,6 @@ public class IPFilterManager
 	private ResultOutput output;
 	
 	/**
-	 * if its a crontask
-	 * 
-	 * @param cron
-	 */
-	public boolean cron;
-
-	/**
 	 * 
 	 * @param cronjob specifies if the task is called by a cron scheduled job or by a human user
 	 * @return
@@ -75,12 +61,14 @@ public class IPFilterManager
 	 * @throws IllegalAccessException 
 	 * @throws InstantiationException 
 	 */
-	public static IPFilterManager getInstance(boolean cronjob) throws InstantiationException, IllegalAccessException, ClassNotFoundException{
+	public static IPFilterManager getInstance(String[] rules) throws InstantiationException, IllegalAccessException, ClassNotFoundException{
 		if(instance == null)
 		{
 			instance = new IPFilterManager();
 		}
-		instance.cron=cronjob;
+		if(rules.length > 0){
+			instance.rules = rules;			
+		}
 		return instance;
 	}
 	
@@ -99,7 +87,7 @@ public class IPFilterManager
 		premadeSolrQuery.addFilterQuery("-isBot: true");
 		
 		//set the result viewer
-		String viewerStr = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("resultViewer");
+		String viewerStr = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("ipFilter.resultViewer");
 		if ((viewerStr == null) || ("".equals(viewerStr))){
 			viewer = new DetailedView();
 		}else{
@@ -116,42 +104,50 @@ public class IPFilterManager
 	}
 	
 	
-	private void getRules()
+	private ArrayList<Rule> getRules() throws InstantiationException, IllegalAccessException, ClassNotFoundException
 	{
-		String rulesSelector = (!cron) ? "ipFilter" : "cron.ipFilter";
+		ArrayList<Rule> rulesList = new ArrayList<Rule>();
 		
-		//Se puebla el array de reglas
-		rules = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty(rulesSelector+".rules");
+		//if there are no rules specified on command line, get rules from configuration file
+		if(rules.length == 0){
+			rules = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty("ipFilter.rules");			
+		}
+		
+		//if a ruleset is specified in command line
+		if(rules[0].startsWith("ruleSet.")){
+			rules = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty(rules[0]+".rules");
+		}
 
+		//create rule instances list
+		for(String rule: rules){
+			String ruleType = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(rule+".ruleType");
+			rulesList.add(new Rule(rule, ruleType, ipList, premadeSolrQuery));
+		}
+		
 		if ((rules == null) || ("".equals(rules)))
         {
             System.err.println(" - no rules specified");
             System.exit(0);
         }
+		return rulesList;
 	}
+	
 	
 	public void filter() throws SolrServerException, InstantiationException, IllegalAccessException, ClassNotFoundException
 	{			
-		this.getRules();
+		ArrayList<Rule> rulesList = this.getRules();
 		
-		for(String ruleName: rules)
+		for(Rule rule: rulesList)
 		{
-			String ruleType = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(ruleName+".ruleType");
-			Rule ruleInstance = new Rule(ruleName, ruleType, ipList, premadeSolrQuery);
-			ruleInstance.run(ipList);
+			rule.run(ipList);
 		}
 		
-	
-		//Informe de resultados
+		//Show results
 		if(ipList.size() > 0){
-			//Set<String> ips = ipList.keySet();
-			
-			
 			if(DSpaceServicesFactory.getInstance().getConfigurationService().getBooleanProperty("markBots", false)){
 				//Marca los ip como bot
 				SolrLoggerService solrLoggerService = StatisticsServiceFactory.getInstance().getSolrLoggerService();
 				for(CandidateIP candidate : ipList.values()){
-					System.out.println("marcando "+candidate.getIp());
 					solrLoggerService.markRobotsByIP(candidate.getIp());					
 				}
 			}

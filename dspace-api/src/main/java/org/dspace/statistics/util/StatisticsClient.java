@@ -67,10 +67,7 @@ public class StatisticsClient
         options.addOption("r", "remove-deleted-bitstreams", false, "While indexing the bundle names remove the statistics about deleted bitstreams");
         options.addOption("s", "shard-solr-index", false, "Split the data from the main Solr core into separate Solr cores per year");
         options.addOption("h", "help", false, "help");
-
-        // TODO elegir nombres apropiados
         options.addOption("c", "bot candidates", false, "run bot candidate ip's detection");
-        options.addOption("C", "bot candidates (cron)", false, "same as 'c' for cron task");
         
 		CommandLine line = parser.parse(options, args);
 		
@@ -79,7 +76,6 @@ public class StatisticsClient
         {
             printHelp(options, 0);
         }
-
         SolrLoggerService solrLoggerService = StatisticsServiceFactory.getInstance().getSolrLoggerService();
         if(line.hasOption("u"))
         {
@@ -115,13 +111,8 @@ public class StatisticsClient
         }
         else if(line.hasOption('c'))
         {
-           IPFilterManager ipFilter = IPFilterManager.getInstance(false);
+           IPFilterManager ipFilter = IPFilterManager.getInstance(line.getArgs());
            ipFilter.filter();
-        }
-        else if(line.hasOption('C'))
-        {
-        	IPFilterManager ipFilter = IPFilterManager.getInstance(true);
-        	ipFilter.filter();
         }
         else
         {
