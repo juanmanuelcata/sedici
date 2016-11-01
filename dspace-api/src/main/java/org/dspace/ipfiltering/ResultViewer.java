@@ -11,11 +11,11 @@ import java.util.HashMap;
 
 public abstract class ResultViewer {
 
-	private String text = "";
+	protected String text = "";
 	
 	protected String delimiter = "\r\n";
 	
-	public abstract String build(CandidateIP candidate);
+	public abstract String addToReport(CandidateIP candidate);
 	
 	public void setDelimiter(String del){
 		delimiter = del;
@@ -23,7 +23,7 @@ public abstract class ResultViewer {
 	
 	public String buildView(HashMap<String, CandidateIP>ipList){
 		for (CandidateIP candidate : ipList.values()){
-			text += this.build(candidate);
+			this.addToReport(candidate);
 		}
 		return text;
 	};

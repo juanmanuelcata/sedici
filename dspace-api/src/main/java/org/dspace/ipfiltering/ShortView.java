@@ -10,7 +10,7 @@ package org.dspace.ipfiltering;
 public class ShortView extends ResultViewer {
 	
 	@Override
-	public String build(CandidateIP candidate) {
+	public String addToReport(CandidateIP candidate) {
 		return candidate.getIp()+delimiter;
 	}
 }

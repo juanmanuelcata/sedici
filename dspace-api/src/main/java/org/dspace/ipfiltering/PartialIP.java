@@ -7,7 +7,12 @@
  */
 
 package org.dspace.ipfiltering;
-
+/**
+ * class to keep information about the IP found by the rules
+ * 
+ * @author gordo
+ *
+ */
 public class PartialIP {
 
 	private String ip;

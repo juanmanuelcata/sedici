@@ -17,7 +17,7 @@ public class Rule{
 	
 	protected String name;
 
-	protected RuleType strategy;
+	protected RuleType ruleType;
 	
 	protected float weight;
 	
@@ -30,8 +30,8 @@ public class Rule{
 	public Rule(String name, String ruleType, HashMap<String, CandidateIP> ipList, SolrQuery premadeSolrQuery) throws InstantiationException, IllegalAccessException, ClassNotFoundException
 	{
 		this.name = name;
-		this.strategy = (RuleType) Class.forName("org.dspace.ipfiltering."+ruleType).newInstance();
-		this.strategy.setOwnerRule(this);
+		this.ruleType = (RuleType) Class.forName("org.dspace.ipfiltering."+ruleType).newInstance();
+		this.ruleType.setOwnerRule(this);
 		this.ipList = ipList;
 		this.premadeSolrQuery = premadeSolrQuery;
 		weights = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty(name+".weights");
@@ -53,7 +53,7 @@ public class Rule{
 	
 	public void run(HashMap<String, CandidateIP> ipList) throws SolrServerException {
 		
-		strategy.run();
+		ruleType.run();
 		
 	}
 	
@@ -68,7 +68,7 @@ public class Rule{
 		}
 		else
 		{
-			//El valor tope que va a tomar si excede lo establecido en la configuracion		
+			//weight value by default (in case it exceed the specified weight values)
 			weight = 1f;
 			for(String w: weights){
 				if(partialIP.getAccess() > Integer.parseInt(w.split("=")[0]))
