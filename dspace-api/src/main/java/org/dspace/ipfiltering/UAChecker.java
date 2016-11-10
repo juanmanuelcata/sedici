@@ -41,7 +41,7 @@ public class UAChecker extends RuleType{
 	
 	@Override
 	public void eval() throws SolrServerException {
-    	QueryResponse response = RuleType.getSolrServerInstance().query(solrQuery);
+    	QueryResponse response = solrServer.query(solrQuery);
     	 	
     	if(response.getFacetField("userAgent").getValues().size() > 0)
     	{

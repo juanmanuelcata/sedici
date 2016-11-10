@@ -126,8 +126,8 @@ public class IPFilterManager
 		
 		if ((rules == null) || ("".equals(rules)))
         {
+			//Usar el logger
             System.err.println(" - no rules specified");
-            System.exit(0);
         }
 		return rulesList;
 	}
@@ -156,6 +156,7 @@ public class IPFilterManager
 		}
 		else
 		{
+			//usar logger
 			System.out.println("No result");
 		}
 	}

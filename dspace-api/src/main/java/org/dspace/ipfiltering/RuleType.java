@@ -15,21 +15,18 @@ import java.util.Map.Entry;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
-import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.statistics.factory.StatisticsServiceFactory;
+import org.dspace.statistics.service.SolrLoggerService;
 
 public abstract class RuleType {
 	
-	protected static HttpSolrServer serverInstance;
+	protected static SolrLoggerService solrServer = StatisticsServiceFactory.getInstance().getSolrLoggerService();
 
 	protected Map<String, String> settings = new HashMap<String, String>();
 	
 	protected SolrQuery solrQuery;
 	
-	/**
-	 * Use ipFoud to save the ip's detected
-	 */
-	protected List<PartialIP> ipFoundList = new ArrayList<PartialIP>();
+	protected List<TempIP> ipFoundList = new ArrayList<TempIP>();
 	
 	private Rule ownerRule;
 	
@@ -41,7 +38,6 @@ public abstract class RuleType {
 	
 	protected abstract void eval() throws SolrServerException;
 	
-	//
 	
 	public void setOwnerRule(Rule rule)
 	{
@@ -73,19 +69,10 @@ public abstract class RuleType {
 	
 	public void process()
 	{
-		for(PartialIP ip : ipFoundList)
+		for(TempIP ip : ipFoundList)
 		{
 			ownerRule.addCandidate(ip);
 		}
-	}
-	
-	protected static HttpSolrServer getSolrServerInstance()
-	{
-		if(serverInstance == null)
-		{
-			serverInstance = new HttpSolrServer(DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("solr-statistics.server"));
-		}
-		return serverInstance;
 	}
 	
 }

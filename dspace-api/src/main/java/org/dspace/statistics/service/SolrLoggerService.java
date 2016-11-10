@@ -7,6 +7,7 @@
  */
 package org.dspace.statistics.service;
 
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrInputDocument;
@@ -180,6 +181,8 @@ public interface SolrLoggerService {
             String facetField, int rows, int max, String dateType, String dateStart,
             String dateEnd, List<String> facetQueries, String sort, boolean ascending)
             throws SolrServerException;
+    
+    public QueryResponse query(SolrQuery query) throws SolrServerException;
 
     /**
      * Returns in a filterQuery string all the ip addresses that should be ignored

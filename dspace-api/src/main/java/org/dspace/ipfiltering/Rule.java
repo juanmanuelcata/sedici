@@ -30,6 +30,7 @@ public class Rule{
 	public Rule(String name, String ruleType, HashMap<String, CandidateIP> ipList, SolrQuery premadeSolrQuery) throws InstantiationException, IllegalAccessException, ClassNotFoundException
 	{
 		this.name = name;
+		//
 		this.ruleType = (RuleType) Class.forName("org.dspace.ipfiltering."+ruleType).newInstance();
 		this.ruleType.setOwnerRule(this);
 		this.ipList = ipList;
@@ -57,29 +58,29 @@ public class Rule{
 		
 	}
 	
-	public final synchronized void addCandidate(PartialIP partialIP)
+	public final synchronized void addCandidate(TempIP tempIP)
 	{			
 		CandidateIP actualIP;
-		if(ipList.containsKey(partialIP.getIp()))
+		if(ipList.containsKey(tempIP.getIp()))
 		{
-			actualIP = ipList.get(partialIP.getIp());
+			actualIP = ipList.get(tempIP.getIp());
 			actualIP.addOccurrence(1f);
-			actualIP.addToReport(partialIP.getReport());
+			actualIP.addToReport(tempIP.getReport());
 		}
 		else
 		{
 			//weight value by default (in case it exceed the specified weight values)
 			weight = 1f;
 			for(String w: weights){
-				if(partialIP.getAccess() > Integer.parseInt(w.split("=")[0]))
+				if(tempIP.getAccess() > Integer.parseInt(w.split("=")[0]))
 				{
 					continue;
 				}
 				weight = Float.parseFloat(w.split("=")[1]);
 				break;
 			}
-			actualIP = new CandidateIP(partialIP.getIp(), weight, partialIP.getReport());
-			ipList.put(partialIP.getIp(), actualIP);
+			actualIP = new CandidateIP(tempIP.getIp(), weight, tempIP.getReport());
+			ipList.put(tempIP.getIp(), actualIP);
 		}
 	}
 	

@@ -7,13 +7,16 @@
  */
 
 package org.dspace.ipfiltering;
+
+import org.joda.time.DateTime;
+
 /**
  * class to keep information about the IP found by the rules
  * 
  * @author gordo
  *
  */
-public class PartialIP {
+public class TempIP {
 
 	private String ip;
 	
@@ -21,7 +24,7 @@ public class PartialIP {
 	
 	private String report;
 
-	public PartialIP(String ip, Integer access, String report)
+	public TempIP(String ip, Integer access, String report)
 	{
 		this.ip = ip;
 		this.access = access;
@@ -51,5 +54,5 @@ public class PartialIP {
 	public void setReport(String report) {
 		this.report = report;
 	}
-	
+
 }

@@ -9,12 +9,15 @@ package org.dspace.statistics.util;
 
 import org.apache.commons.cli.*;
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.tools.ant.taskdefs.Get;
 import org.dspace.statistics.factory.StatisticsServiceFactory;
 import org.dspace.statistics.service.SolrLoggerService;
 
 import java.io.*;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.dspace.ipfiltering.IPFilterManager;
 import org.dspace.services.factory.DSpaceServicesFactory;

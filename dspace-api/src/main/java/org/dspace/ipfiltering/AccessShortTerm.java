@@ -15,7 +15,6 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.dspace.core.Constants;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.joda.time.DateTime;
-import org.joda.time.Days;
 
 /**
  * Filtra ip's que acceden a una determinada cantidad de elementos en periodos de una hora
@@ -77,7 +76,7 @@ public class AccessShortTerm extends RuleType {
 //     	
     	while (!timeIterator.equals(endDate))
     	{
-    		QueryResponse response = RuleType.getSolrServerInstance().query(solrQuery);
+    		QueryResponse response = solrServer.query(solrQuery);
         	List<Count> list = response.getFacetFields().get(0).getValues();
         	if(response.getFacetFields().get(0).getValues().size() > 0)
         	{
@@ -92,7 +91,7 @@ public class AccessShortTerm extends RuleType {
         					.replace("(", "")
         					.replace(")", "");
         			String report = "ip: "+ip+" date: "+timeIterator.getYear()+"-"+timeIterator.getMonthOfYear()+"-"+timeIterator.getDayOfMonth()+" between "+timeIterator.getHourOfDay()+" and "+timeIterator.plusHours(1).getHourOfDay()+" got "+access+" access - type: "+Constants.typeText[Integer.valueOf(settings.get("type"))];
-        			ipFoundList.add(new PartialIP(ip, Integer.parseInt(access), report));
+        			ipFoundList.add(new TempIP(ip, Integer.parseInt(access), report));
         		}
         	}
         	timeIterator = timeIterator.plusHours(1);

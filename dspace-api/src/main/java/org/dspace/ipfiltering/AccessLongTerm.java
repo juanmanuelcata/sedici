@@ -51,7 +51,7 @@ public class AccessLongTerm extends RuleType {
 
 	public void eval() throws SolrServerException
 	{
-    	QueryResponse response = RuleType.getSolrServerInstance().query(solrQuery);
+    	QueryResponse response = solrServer.query(solrQuery);
     	List<Count> list = response.getFacetFields().get(0).getValues();
     	for(Count c: list)
     	{
@@ -61,7 +61,7 @@ public class AccessLongTerm extends RuleType {
 					.replace("(", "")
 					.replace(")", "");
     		String report = "ip: "+ip+" between: "+startDate+" and "+endDate+" got "+access+" access - type: "+Constants.typeText[Integer.valueOf(settings.get("type"))];
-    		ipFoundList.add(new PartialIP(ip, Integer.parseInt(access), report));
+    		ipFoundList.add(new TempIP(ip, Integer.parseInt(access), report));
     	}
     	
 	}

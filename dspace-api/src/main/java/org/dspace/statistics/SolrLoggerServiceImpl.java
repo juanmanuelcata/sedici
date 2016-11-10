@@ -1166,6 +1166,18 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         return response;
     }
 
+    public QueryResponse query(SolrQuery query) throws SolrServerException
+    {
+    	QueryResponse response;
+    	try {
+			response = solr.query(query);
+		} catch (SolrServerException e) {
+			System.err.println("Error using query " + query);
+            throw e;
+		}
+    	return response;
+    }
+    
 
     /** String of IP and Ranges in IPTable as a Solr Query */
     protected String filterQuery = null;
