@@ -114,8 +114,7 @@ public class StatisticsClient
         }
         else if(line.hasOption('c'))
         {
-           IPFilterManager ipFilter = IPFilterManager.getInstance(line.getArgs());
-           ipFilter.filter();
+        	new IPFilterManager(line.getArgs()).filter();
         }
         else
         {

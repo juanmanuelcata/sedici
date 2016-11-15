@@ -37,6 +37,14 @@ public class CandidateIP implements Comparable{
 		this.occurrences = 1;
 	}
 	
+	public CandidateIP(String ip, Integer occurrences, String report)
+	{
+		this.ip = ip;
+		this.probabilities = 0f;
+		this.report = report+"\n";
+		this.occurrences = occurrences;
+	}
+	
 	public String getIp() 
 	{
 		return ip;
@@ -49,7 +57,7 @@ public class CandidateIP implements Comparable{
 
 	public Float getProbabilities()
 	{
-		return probabilities/occurrences;
+		return probabilities;
 	}
 
 	public void setProbabilities(Float probabilities) 
@@ -95,9 +103,10 @@ public class CandidateIP implements Comparable{
 	/*
 	 * eehhh masomeno
 	 */
-	public void addOccurrence(Float weight)
+	public CandidateIP addOccurrence(Float weight)
 	{
 		this.occurrences++;
 		this.probabilities+=weight;
+		return this;
 	}
 }

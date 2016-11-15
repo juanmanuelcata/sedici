@@ -8,7 +8,9 @@
 package org.dspace.ipfiltering;
 
 import java.util.HashMap;
+import java.util.List;
 
+import org.apache.commons.cli.MissingArgumentException;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -52,36 +54,27 @@ public class Rule{
 		return premadeSolrQuery;
 	}
 	
-	public void run(HashMap<String, CandidateIP> ipList) throws SolrServerException {
+	public List<CandidateIP> run() throws SolrServerException, MissingArgumentException {
 		
-		ruleType.run();
+		List<CandidateIP> ipList = ruleType.run();
+		for(CandidateIP ip: ipList){
+			ip.setProbabilities(this.getWeight(ip.getOccurrences()));
+		}
+		return ipList;
 		
 	}
 	
-	public final synchronized void addCandidate(TempIP tempIP)
-	{			
-		CandidateIP actualIP;
-		if(ipList.containsKey(tempIP.getIp()))
-		{
-			actualIP = ipList.get(tempIP.getIp());
-			actualIP.addOccurrence(1f);
-			actualIP.addToReport(tempIP.getReport());
-		}
-		else
-		{
-			//weight value by default (in case it exceed the specified weight values)
-			weight = 1f;
-			for(String w: weights){
-				if(tempIP.getAccess() > Integer.parseInt(w.split("=")[0]))
-				{
-					continue;
-				}
-				weight = Float.parseFloat(w.split("=")[1]);
-				break;
+	public Float getWeight(Integer access){
+		Float weight = 1f;
+		for(String w: weights){
+			if(access > Integer.parseInt(w.split("=")[0]))
+			{
+				continue;
 			}
-			actualIP = new CandidateIP(tempIP.getIp(), weight, tempIP.getReport());
-			ipList.put(tempIP.getIp(), actualIP);
+			weight = Float.parseFloat(w.split("=")[1]);
+			break;
 		}
+		return weight;
 	}
 	
 }

@@ -10,6 +10,9 @@ package org.dspace.ipfiltering;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+
+import org.apache.commons.cli.MissingArgumentException;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -19,9 +22,7 @@ import org.dspace.statistics.service.SolrLoggerService;
 
 public class IPFilterManager
 {
-	
-	private static IPFilterManager instance;
-	
+
 	private SolrQuery premadeSolrQuery = new SolrQuery();
 	
 	private static final Logger log = Logger.getLogger(IPFilterManager.class);
@@ -47,35 +48,10 @@ public class IPFilterManager
 	 */
 	private ResultViewer viewer;
 	
-	/**
-	 * Where to show results
-	 * 
-	 */
-	private ResultOutput output;
-	
-	/**
-	 * 
-	 * @param cronjob specifies if the task is called by a cron scheduled job or by a human user
-	 * @return
-	 * @throws ClassNotFoundException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 */
-	public static IPFilterManager getInstance(String[] rules) throws InstantiationException, IllegalAccessException, ClassNotFoundException{
-		if(instance == null)
-		{
-			instance = new IPFilterManager();
-		}
-		if(rules.length > 0){
-			instance.rules = rules;			
-		}
-		return instance;
-	}
-	
-	
-	public IPFilterManager() throws InstantiationException, IllegalAccessException, ClassNotFoundException
+	public IPFilterManager(String[] commandLineRules) throws InstantiationException, IllegalAccessException, ClassNotFoundException
 	{
-		//Se puebla el array de whitelists
+		rules = commandLineRules;
+		
 		whitelist = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty("ipFilter.whitelist");
 		if(whitelist.length > 0){
 			String filterQuery = Arrays.toString(whitelist)
@@ -93,16 +69,22 @@ public class IPFilterManager
 		}else{
 			viewer = (ResultViewer) Class.forName("org.dspace.ipfiltering."+viewerStr).newInstance();
 		};
-		
-		//set the output
-		String outputStr = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("output");
-		if ((outputStr == null) || ("".equals(outputStr))){
-			output = new ConsolePrint();
-		}else{
-			output = (ResultOutput) Class.forName("org.dspace.ipfiltering."+outputStr).newInstance();
-		};
+
 	}
 	
+	public void addCandidate(CandidateIP ip)
+	{
+		if(ipList.containsKey(ip.getIp()))
+		{
+			ipList.get(ip.getIp())
+				.addOccurrence(ip.getProbabilities())
+				.addToReport(ip.getReport());
+		}
+		else
+		{
+			ipList.put(ip.getIp(), ip);
+		}
+	}	
 	
 	private ArrayList<Rule> getRules() throws InstantiationException, IllegalAccessException, ClassNotFoundException
 	{
@@ -110,36 +92,39 @@ public class IPFilterManager
 		
 		//if there are no rules specified on command line, get rules from configuration file
 		if(rules.length == 0){
-			rules = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty("ipFilter.rules");			
+			rules = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty("ipFilter.rules");
 		}
-		
-		//if a ruleset is specified in command line
-		if(rules[0].startsWith("ruleSet.")){
+		//if a ruleset is specified in command line and is a ruleset
+		else if(rules[0].startsWith("ruleSet.")){
 			rules = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty(rules[0]+".rules");
-		}
-
-		//create rule instances list
-		for(String rule: rules){
-			String ruleType = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(rule+".ruleType");
-			rulesList.add(new Rule(rule, ruleType, ipList, premadeSolrQuery));
-		}
+		}	
 		
-		if ((rules == null) || ("".equals(rules)))
+		
+		if ((rules == null) || ("".equals(rules[0])))
         {
-			//Usar el logger
-            System.err.println(" - no rules specified");
+			log.warn("no rules specified");
+        }else{
+        	//create rule instances list
+    		for(String rule: rules){
+    			String ruleType = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(rule+".ruleType");
+    			rulesList.add(new Rule(rule, ruleType, ipList, premadeSolrQuery));
+    		}
         }
+		
 		return rulesList;
 	}
 	
 	
-	public void filter() throws SolrServerException, InstantiationException, IllegalAccessException, ClassNotFoundException
+	public void filter() throws SolrServerException, InstantiationException, IllegalAccessException, ClassNotFoundException, MissingArgumentException
 	{			
 		ArrayList<Rule> rulesList = this.getRules();
 		
 		for(Rule rule: rulesList)
 		{
-			rule.run(ipList);
+			List<CandidateIP> ruleIpList = rule.run();
+			for (CandidateIP ip: ruleIpList){
+				addCandidate(ip);
+			} 
 		}
 		
 		//Show results
@@ -151,13 +136,11 @@ public class IPFilterManager
 					solrLoggerService.markRobotsByIP(candidate.getIp());					
 				}
 			}
-			
-			output.print(viewer.buildView(ipList));
+			log.info(viewer.buildView(ipList));
 		}
 		else
 		{
-			//usar logger
-			System.out.println("No result");
+			log.info("Bot-detection - No result found");
 		}
 	}
 }

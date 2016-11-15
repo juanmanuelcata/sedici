@@ -35,7 +35,7 @@ public class MatchingIPs extends RuleType{
 	}
 	
 	@Override
-	public void eval() throws SolrServerException {
+	public List<CandidateIP> eval() throws SolrServerException {
 				
     	QueryResponse response = solrServer.query(solrQuery);
     	
@@ -70,9 +70,10 @@ public class MatchingIPs extends RuleType{
     			for(String ip: subIPList)
     			{
     				String report = "presente en la subnet "+ent.getKey()+" junto con otra/s "+(ocurs-1)+" ips";
-    				ipFoundList.add(new TempIP(ip, ocurs, report));
+    				ipFoundList.add(new CandidateIP(ip, ocurs, report));
     			}
     		}
     	}
+		return ipFoundList;
 	}
 }

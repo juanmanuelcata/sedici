@@ -10,7 +10,7 @@ package org.dspace.ipfiltering;
 public class DetailedView extends ResultViewer {
 	
 	@Override
-	public String addToReport(CandidateIP candidate) {
+	public String getViewFrom(CandidateIP candidate) {
 		text+=candidate.getIp()+delimiter;
 		text+="---probabilidad:"+candidate.getProbabilities()+delimiter;
 		text+="---reporte:"+delimiter;

@@ -40,7 +40,7 @@ public class UAChecker extends RuleType{
 	}
 	
 	@Override
-	public void eval() throws SolrServerException {
+	public List<CandidateIP> eval() throws SolrServerException {
     	QueryResponse response = solrServer.query(solrQuery);
     	 	
     	if(response.getFacetField("userAgent").getValues().size() > 0)
@@ -53,5 +53,6 @@ public class UAChecker extends RuleType{
     			System.out.println("-> "+c);
     		}		
     	}
+		return ipFoundList;
 	}
 }

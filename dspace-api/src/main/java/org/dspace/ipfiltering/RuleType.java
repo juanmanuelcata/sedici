@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.cli.MissingArgumentException;
+import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.statistics.factory.StatisticsServiceFactory;
@@ -26,17 +28,19 @@ public abstract class RuleType {
 	
 	protected SolrQuery solrQuery;
 	
-	protected List<TempIP> ipFoundList = new ArrayList<TempIP>();
+	protected List<CandidateIP> ipFoundList = new ArrayList<CandidateIP>();
+	
+	private static final Logger log = Logger.getLogger(IPFilterManager.class);
 	
 	private Rule ownerRule;
 	
 	//Hook methods
 	
-	protected abstract void getSettings(String prefix);
+	protected abstract void getSettings(String prefix) throws MissingArgumentException;
 	
 	protected abstract void buildQuery();
 	
-	protected abstract void eval() throws SolrServerException;
+	protected abstract List<CandidateIP> eval() throws SolrServerException;
 	
 	
 	public void setOwnerRule(Rule rule)
@@ -45,33 +49,23 @@ public abstract class RuleType {
 	}
 	
 	//Template method
-	public void run() throws SolrServerException
+	public List<CandidateIP> run() throws SolrServerException, MissingArgumentException
 	{
 		solrQuery = ownerRule.getSolrQuery();
-		this.getSettings(ownerRule.getName());
-		this.validateSettings();
-		this.buildQuery();
-		this.eval();
-		this.process();
-	};
+		getSettings(ownerRule.getName());
+		validateSettings();
+		buildQuery();
+		return eval();
+	}
 
 
-	public void validateSettings(){
+	public void validateSettings() throws MissingArgumentException{
 		for(Entry<String, String> setting: settings.entrySet())
 		{
 			if ((setting.getValue() == null) || ("".equals(setting.getValue())))
 	        {
-	            System.err.println(" - Missing setting from ipfilter-rules.cfg: "+setting.getKey());
-	            System.exit(0);
+				throw new MissingArgumentException(setting.toString());
 	        }
-		}
-	}
-	
-	public void process()
-	{
-		for(TempIP ip : ipFoundList)
-		{
-			ownerRule.addCandidate(ip);
 		}
 	}
 	
