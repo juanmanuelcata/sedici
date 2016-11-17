@@ -8,8 +8,6 @@
 
 package org.dspace.ipfiltering;
 
-import org.joda.time.DateTime;
-
 /**
  * class to keep information about the IP found by the rules
  * 

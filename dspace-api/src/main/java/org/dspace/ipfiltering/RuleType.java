@@ -49,10 +49,10 @@ public abstract class RuleType {
 	}
 	
 	//Template method
-	public List<CandidateIP> run() throws SolrServerException, MissingArgumentException
+	public List<CandidateIP> run(SolrQuery query, String ruleName) throws SolrServerException, MissingArgumentException
 	{
-		solrQuery = ownerRule.getSolrQuery();
-		getSettings(ownerRule.getName());
+		this.solrQuery = query;
+		getSettings(ruleName);
 		validateSettings();
 		buildQuery();
 		return eval();

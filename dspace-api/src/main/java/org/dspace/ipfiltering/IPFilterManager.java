@@ -116,7 +116,7 @@ public class IPFilterManager
 	
 	
 	public void filter() throws SolrServerException, InstantiationException, IllegalAccessException, ClassNotFoundException, MissingArgumentException
-	{			
+	{
 		ArrayList<Rule> rulesList = this.getRules();
 		
 		for(Rule rule: rulesList)

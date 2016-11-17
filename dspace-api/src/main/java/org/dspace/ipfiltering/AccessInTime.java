@@ -60,7 +60,7 @@ public class AccessInTime extends RuleType {
 		QueryResponse response = solrServer.query(solrQuery);
     	if(response.getFacetFields().get(0).getValues().size() > 0)
     	{
-    		List<Count> list = response.getFacetFields().get(0).getValues();
+    		List<Count> list = response.getFacetField("ip").getValues();
     		for(Count c: list)
     		{
     			String[] str = c.toString().split(" ");
@@ -88,31 +88,6 @@ public class AccessInTime extends RuleType {
 		}
 		
 		return ipFoundList;
-		
-//    	DateTime startDate = new DateTime(settings.get("startDateStr"));
-//    	DateTime endDate = new DateTime(settings.get("endDateStr"));
-//    	
-//    	Days days = Days.daysBetween(startDate, endDate);
-//    	
-//    	DateTime endDate1 = startDate.plusDays(days.getDays()/2);
-//    	DateTime startDate2 = endDate1.plusDays(1);
-//    	
-//    	ASTQueryThread t1 = new ASTQueryThread(startDate, endDate1, settings.get("type"), settings.get("count"), ownerRule, solrQuery);
-//    	ASTQueryThread t2 = new ASTQueryThread(startDate2, endDate, settings.get("type"), settings.get("count"), ownerRule, solrQuery);
-//    	
-//    	t1.setName("t1");
-//    	t1.start();
-//    	t2.setName("t2");
-//    	t2.start();
-//    	
-//    	try {
-//			t1.join();
-//			t2.join();
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//    
 		
 	}
 }

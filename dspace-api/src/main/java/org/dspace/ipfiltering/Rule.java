@@ -27,15 +27,12 @@ public class Rule{
 	
 	protected SolrQuery premadeSolrQuery = new SolrQuery();
 	
-	private HashMap<String, CandidateIP> ipList = new HashMap<String, CandidateIP>();
-
 	public Rule(String name, String ruleType, HashMap<String, CandidateIP> ipList, SolrQuery premadeSolrQuery) throws InstantiationException, IllegalAccessException, ClassNotFoundException
 	{
 		this.name = name;
 		//
 		this.ruleType = (RuleType) Class.forName("org.dspace.ipfiltering."+ruleType).newInstance();
 		this.ruleType.setOwnerRule(this);
-		this.ipList = ipList;
 		this.premadeSolrQuery = premadeSolrQuery;
 		weights = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty(name+".weights");
 	}
@@ -54,9 +51,9 @@ public class Rule{
 		return premadeSolrQuery;
 	}
 	
-	public List<CandidateIP> run() throws SolrServerException, MissingArgumentException {
-		
-		List<CandidateIP> ipList = ruleType.run();
+	public List<CandidateIP> run() throws SolrServerException, MissingArgumentException 
+	{
+		List<CandidateIP> ipList = ruleType.run(premadeSolrQuery, this.name);
 		for(CandidateIP ip: ipList){
 			ip.setProbabilities(this.getWeight(ip.getOccurrences()));
 		}
