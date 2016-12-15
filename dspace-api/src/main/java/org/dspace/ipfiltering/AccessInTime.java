@@ -46,7 +46,8 @@ public class AccessInTime extends RuleType {
 	
 	public void buildQuery()
 	{	
-		solrQuery.setQuery("time:["+timeIterator.toString()+"Z TO "+getDateLimit().toString()+"Z] AND type:"+settings.get("type"));
+		solrQuery.setQuery("time:["+timeIterator.toString()+"Z TO "+getDateLimit().toString()+"Z]");
+		solrQuery.setParam("type", "/"+settings.get("type")+"/");
 		solrQuery.setFacet(true);
 		solrQuery.addFacetField("ip");
 		solrQuery.setFacetMinCount(Integer.parseInt(settings.get("count")));
@@ -58,6 +59,8 @@ public class AccessInTime extends RuleType {
 	
 	public void runQuery() throws SolrServerException{
 		QueryResponse response = solrServer.query(solrQuery);
+		
+		//revisar si hay otra forma de acceder a este dato
     	if(response.getFacetFields().get(0).getValues().size() > 0)
     	{
     		List<Count> list = response.getFacetField("ip").getValues();
@@ -68,7 +71,7 @@ public class AccessInTime extends RuleType {
     			String access = str[1]
     					.replace("(", "")
     					.replace(")", "");
-    			String report = "ip: "+ip+" date: "+timeIterator.toString()+" and "+getDateLimit().toString()+" got "+access+" access - type: "+Constants.typeText[Integer.valueOf(settings.get("type"))];
+    			String report = "ip: "+ip+" date: "+timeIterator.toString()+" and "+getDateLimit().toString()+" got "+access+" access";
     			ipFoundList.add(new CandidateIP(ip, Integer.parseInt(access), report));
     		}
     	}
@@ -83,7 +86,7 @@ public class AccessInTime extends RuleType {
 			while(timeIterator.isBefore(endDate)){
 				runQuery();
 				timeIterator = timeIterator.plusHours(Integer.parseInt(settings.get("gap")));
-	        	solrQuery.setQuery("time:["+timeIterator.toString()+"Z TO "+timeIterator.plusHours(Integer.parseInt(settings.get("gap"))).toString()+"Z] AND type:"+settings.get("type"));
+	        	solrQuery.setQuery("time:["+timeIterator.toString()+"Z TO "+timeIterator.plusHours(Integer.parseInt(settings.get("gap"))).toString()+"Z]");
 			}
 		}
 		

@@ -32,8 +32,6 @@ public abstract class RuleType {
 	
 	private static final Logger log = Logger.getLogger(IPFilterManager.class);
 	
-	private Rule ownerRule;
-	
 	//Hook methods
 	
 	protected abstract void getSettings(String prefix) throws MissingArgumentException;
@@ -42,18 +40,12 @@ public abstract class RuleType {
 	
 	protected abstract List<CandidateIP> eval() throws SolrServerException;
 	
-	
-	public void setOwnerRule(Rule rule)
-	{
-		this.ownerRule = rule;
-	}
-	
 	//Template method
 	public List<CandidateIP> run(SolrQuery query, String ruleName) throws SolrServerException, MissingArgumentException
 	{
 		this.solrQuery = query;
 		getSettings(ruleName);
-		validateSettings();
+//		validateSettings();
 		buildQuery();
 		return eval();
 	}

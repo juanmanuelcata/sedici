@@ -32,7 +32,6 @@ public class Rule{
 		this.name = name;
 		//
 		this.ruleType = (RuleType) Class.forName("org.dspace.ipfiltering."+ruleType).newInstance();
-		this.ruleType.setOwnerRule(this);
 		this.premadeSolrQuery = premadeSolrQuery;
 		weights = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty(name+".weights");
 	}
