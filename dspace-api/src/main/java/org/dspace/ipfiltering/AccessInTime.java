@@ -7,6 +7,7 @@
  */
 package org.dspace.ipfiltering;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.cli.MissingArgumentException;
@@ -37,8 +38,6 @@ public class AccessInTime extends RuleType {
     	settings.put("count", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".count"));
     	settings.put("gap", DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(prefix+".gap"));
     	
-    	validateSettings();
-    	
     	timeIterator  = new DateTime(settings.get("startDateStr"));
 		endDate = new DateTime(settings.get("endDateStr"));
     	
@@ -50,6 +49,7 @@ public class AccessInTime extends RuleType {
 		solrQuery.setParam("type", "/"+settings.get("type")+"/");
 		solrQuery.setFacet(true);
 		solrQuery.addFacetField("ip");
+		solrQuery.addFacetField("type");
 		solrQuery.setFacetMinCount(Integer.parseInt(settings.get("count")));
 	}
 	
@@ -61,7 +61,7 @@ public class AccessInTime extends RuleType {
 		QueryResponse response = solrServer.query(solrQuery);
 		
 		//revisar si hay otra forma de acceder a este dato
-    	if(response.getFacetFields().get(0).getValues().size() > 0)
+    	if(response.getFacetField("ip").getValues().size() > 0)
     	{
     		List<Count> list = response.getFacetField("ip").getValues();
     		for(Count c: list)
@@ -71,7 +71,8 @@ public class AccessInTime extends RuleType {
     			String access = str[1]
     					.replace("(", "")
     					.replace(")", "");
-    			String report = "ip: "+ip+" date: "+timeIterator.toString()+" and "+getDateLimit().toString()+" got "+access+" access";
+    			    			
+    			String report = "ip: "+ip+" date: "+timeIterator.toString()+" and "+getDateLimit().toString()+" got "+access+" access \n";
     			ipFoundList.add(new CandidateIP(ip, Integer.parseInt(access), report));
     		}
     	}

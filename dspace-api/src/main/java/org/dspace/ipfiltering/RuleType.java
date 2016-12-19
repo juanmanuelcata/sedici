@@ -45,7 +45,7 @@ public abstract class RuleType {
 	{
 		this.solrQuery = query;
 		getSettings(ruleName);
-//		validateSettings();
+		validateSettings();
 		buildQuery();
 		return eval();
 	}
