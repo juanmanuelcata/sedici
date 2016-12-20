@@ -7,7 +7,6 @@
  */
 package org.dspace.ipfiltering;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.cli.MissingArgumentException;
@@ -53,6 +52,12 @@ public class AccessInTime extends RuleType {
 		solrQuery.setFacetMinCount(Integer.parseInt(settings.get("count")));
 	}
 	
+	
+	/*
+	 *la fecha límite varia dependiendo de si se está analizando un período grande de tiempo, por ejemplo, los accesos del ultimo año
+	 *o si se estan analizando lapsos de tiempo pequeños dentro de un lapso mayor, por ejemplo, los accesos hora a hora durante
+	 *el ultimo año
+	 */
 	public DateTime getDateLimit(){
 		return ("0".equals(settings.get("gap"))) ? endDate : timeIterator.plusHours(Integer.parseInt(settings.get("gap")));
 	}
@@ -60,7 +65,6 @@ public class AccessInTime extends RuleType {
 	public void runQuery() throws SolrServerException{
 		QueryResponse response = solrServer.query(solrQuery);
 		
-		//revisar si hay otra forma de acceder a este dato
     	if(response.getFacetField("ip").getValues().size() > 0)
     	{
     		List<Count> list = response.getFacetField("ip").getValues();

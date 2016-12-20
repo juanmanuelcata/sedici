@@ -62,7 +62,7 @@ public class IPFilterManager
 		}
 		premadeSolrQuery.addFilterQuery("-isBot: true");
 		
-		//set the result viewer
+		//Set ResultViewer
 		String viewerStr = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("ipFilter.resultViewer");
 		if ((viewerStr == null) || ("".equals(viewerStr))){
 			viewer = new DetailedView();

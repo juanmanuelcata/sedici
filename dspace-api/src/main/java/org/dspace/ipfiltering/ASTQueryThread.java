@@ -11,6 +11,16 @@
  */
 package org.dspace.ipfiltering;
 
+
+/*
+ * NOTA
+ * 
+ * 
+ * Esta clase no se usa, la hice para probar ejecutar las consultas de forma concurrente
+ * 
+ */
+
+
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;

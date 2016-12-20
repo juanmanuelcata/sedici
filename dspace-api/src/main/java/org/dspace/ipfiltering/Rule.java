@@ -44,7 +44,6 @@ public class Rule{
 		this.name = name;
 	}
 	
-	//returns the premade solr query with the whitelist added to the filter query
 	public SolrQuery getSolrQuery()
 	{
 		return premadeSolrQuery;
