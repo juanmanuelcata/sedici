@@ -13,12 +13,11 @@ import org.apache.commons.cli.MissingArgumentException;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.dspace.core.Constants;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.joda.time.DateTime;
 
 /**
- * Filter by access in specified time lapses
+ * Filtra por accesos en determinados lapsos de tiempoCI	
  * 
  * @author gordo
  *
@@ -84,7 +83,6 @@ public class AccessInTime extends RuleType {
 	
 	public List<CandidateIP> eval() throws SolrServerException 
 	{
-		
 		if("0".equals(settings.get("gap"))){
     		runQuery();
 		}else{

@@ -17,14 +17,24 @@ import org.dspace.services.factory.DSpaceServicesFactory;
 
 public class Rule{
 	
+	/**
+	 * nombre que identifica a la regla
+	 */
 	protected String name;
-
+	
+	/**
+	 * algoritmo de búsqueda asignado
+	 */
 	protected RuleType ruleType;
-	
-	protected float weight;
-	
+
+	/**
+	 * lista de pesos
+	 */
 	protected String[] weights = {};
 	
+	/**
+	 * query prearmada con filtro de whitelisty el -isBot:true
+	 */
 	protected SolrQuery premadeSolrQuery = new SolrQuery();
 	
 	public Rule(String name, String ruleType, HashMap<String, CandidateIP> ipList, SolrQuery premadeSolrQuery) throws InstantiationException, IllegalAccessException, ClassNotFoundException
@@ -55,8 +65,7 @@ public class Rule{
 		for(CandidateIP ip: ipList){
 			ip.setProbabilities(this.getWeight(ip.getOccurrences()));
 		}
-		return ipList;
-		
+		return ipList;	
 	}
 	
 	public Float getWeight(Integer access){

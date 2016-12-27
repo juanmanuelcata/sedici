@@ -15,6 +15,13 @@ import org.dspace.services.factory.DSpaceServicesFactory;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 
+/**
+ * 
+ * busca palabras claves como bot, spider, crawler, etc en los user agent
+ * 
+ * @author gordo
+ *
+ */
 public class UAChecker extends RuleType{
 
 	private String[] substr;

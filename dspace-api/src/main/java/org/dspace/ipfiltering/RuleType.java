@@ -14,24 +14,33 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.cli.MissingArgumentException;
-import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.statistics.factory.StatisticsServiceFactory;
 import org.dspace.statistics.service.SolrLoggerService;
 
+/**
+ * Clase padre con la estructura que las clases que implementan las heurísticas de búsqueda deberian implementar
+ * 
+ * @author gordo
+ *
+ */
 public abstract class RuleType {
 	
 	protected static SolrLoggerService solrServer = StatisticsServiceFactory.getInstance().getSolrLoggerService();
 
+	/**
+	 * map con las configuraciones definidas en el archivo de configuración
+	 */
 	protected Map<String, String> settings = new HashMap<String, String>();
 	
 	protected SolrQuery solrQuery;
 	
+	/**
+	 * Lista parcial de ips detectadas por esta regla
+	 */
 	protected List<CandidateIP> ipFoundList = new ArrayList<CandidateIP>();
-	
-	private static final Logger log = Logger.getLogger(IPFilterManager.class);
-	
+
 	//Hook methods
 	
 	protected abstract void getSettings(String prefix) throws MissingArgumentException;
@@ -50,7 +59,11 @@ public abstract class RuleType {
 		return eval();
 	}
 
-
+	/**
+	 * Podria pulirse un poco mas, por el momento verifica que no haya valores vacios
+	 * 
+	 * @throws MissingArgumentException
+	 */
 	public void validateSettings() throws MissingArgumentException{
 		for(Entry<String, String> setting: settings.entrySet())
 		{
